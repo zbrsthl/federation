@@ -107,6 +107,7 @@ type EntityPost struct {
   Request *EntityRequest `xml:"request,omitempty"`
   Retraction *EntityRetraction `xml:"retraction,omitempty"`
   Profile *EntityProfile `xml:"profile,omitempty"`
+  Reshare *EntityStatusMessage `xml:"reshare,omitempty"`
   StatusMessage *EntityStatusMessage `xml:"status_message,omitempty"`
   Comment *EntityComment `xml:"comment,omitempty"`
   Like *EntityLike `xml:"like,omitempty"`

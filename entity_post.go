@@ -24,11 +24,14 @@ type EntityStatusMessage struct {
   Guid string `xml:"guid"`
   CreatedAt time.Time `xml:"created_at"`
   ProviderName string `xml:"provider_display_name"`
-  RawMessage string `xml:"raw_message"`
+  RawMessage string `xml:"raw_message,omitempty"`
   Photo *EntityPhotos `xml:"photo,omitempty"`
   Location *EntityLocation `xml:"location,omitempty"`
   Poll *EntityPoll `xml:"poll,omitempty"`
   Public bool `xml:"public"`
+  // on reshare
+  RootHandle string `xml:"root_diaspora_id,omitempty"`
+  RootGuid string `xml:"root_guid,omitempty"`
 }
 
 type EntityPhoto struct {
