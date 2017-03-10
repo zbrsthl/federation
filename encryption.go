@@ -181,40 +181,6 @@ func AuthorSignature(data interface{}, privKey string) (string, error) {
     // positive guid parent_guid parent_type author
     text = positive+";"+entity.Guid+";"+entity.ParentGuid+
       ";"+entity.TargetType+";"+entity.DiasporaHandle
-  case *EntityStatusMessage:
-    // parent author signature
-    //timeLayout := "2006-01-02T15:04:05-07:00"
-    //timeLayout := "2006-01-02T15:04:05.000000000Z"
-    //       e.g. 2017-02-20T00:44:37.548811913+01:00
-    public := "false"
-    if entity.Public {
-      public = "true"
-    }
-
-
-
-
-
-// <XML><post><status_message><diaspora_handle>lukas@192.168.0.173:9000</diaspora_handle><guid>de7f4b0a17ad43b74627628ee5f956fc</guid><created_at>2017-02-20T14:41:44.545004637Z</created_at><provider_display_name>GangGo</provider_display_name><raw_message>app/models/entities/post</raw_message><public>true</public></status_message></post></XML>
-
-
-//<comment><diaspora_handle>lukas@192.168.0.173:9000</diaspora_handle><guid>3cadba7a21004e2ddebb0c3d18cb1951</guid><parent_guid>de7f4b0a17ad43b74627628ee5f956fc</parent_guid><text>app/models/entities/post2</text><author_signature>nTOIXwLuxeyR3Df9mEmIt56CnEFrnEWTCBfilioKydE6oHcjGLZTZL2nONzgBWmkhBCrM7TMd2k6LJFWDBZE4gTDirbBneAEamWtXoNAsQRjUD4NNJpfVjqZXC3D9269nmZQ1eRojIjNfNWHB13LDBIWQC1yfKG0Hokg23745nlqMeKGWB3ntrNm5rOHPfpcRt/VoxqB80nUXYdSePsbagAPh5KxvIaf+rNQdNVa5r8d1bHXyk41Doh2a4JdyVnC1D+vPJkX5R9vtoVbbzpSRSFQ9zJnbkVqIjVtS7oi3zI3zU+liM/n0iXA424/HOZW+nmP6LRGLsj3y/Wn6HW32A==</author_signature><parent_author_signature>jxxB0YtDkxfy+aAuKXliefGdtfcEAV1BmisdzYTNiay+ua7jtuSHq3AAIECEAQVwMWpxZ36uB69d6ji4KBqdJFMaD8momPqd7WjZYrTKUSObFl8mq2REAL1pBBFmECgmjyiOixwBNFE6r2dqD6Uk85GsY+IhNCuhvLsM7sM5ZYVZdoqPZv3lC2j6m/fvStG3EtYh7ruu/XxR1+mucRU5M4UaS48MD86F55+pDS7qj7QDMk/bronBz9SkDPJkpYGerrRTP4njKkNMhWjPxy8wpYURW8DRFqZLjOcYLLnmhppej3wJXrrx4PwufVW/zU6eZVdll8jsiaK7cmFWfjGKsQ==</parent_author_signature></comment>
-
-//lukas@192.168.0.173:9000;de7f4b0a17ad43b74627628ee5f956fc;2017-02-20T15:41:44+00:00;GangGo;app/models/entities/post;true
-
-    text = entity.DiasporaHandle+";"+entity.Guid+";"+
-      //entity.CreatedAt.UTC().Format(timeLayout)+";"+
-      "2017-02-20T14:41:44.545004637Z;"+
-      entity.ProviderName+";"+entity.RawMessage+";"+public
-
-      // author guid parent_guid text
-
-//lukas@192.168.0.173:9000;de7f4b0a17ad43b74627628ee5f956fc;2017-02-20T14:41:44.545004637Z;GangGo;app/models/entities/post;true
-
-
-
-    revel.WARN.Println(text)
-
   }
   return Sign(text, privKey)
 }
