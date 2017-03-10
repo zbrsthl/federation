@@ -173,6 +173,14 @@ func AuthorSignature(data interface{}, privKey string) (string, error) {
   case *EntityComment:
     text = entity.DiasporaHandle+";"+entity.Guid+";"+
       entity.ParentGuid+";"+entity.Text
+  case *EntityLike:
+    positive := "false"
+    if entity.Positive {
+      positive = "true"
+    }
+    // positive guid parent_guid parent_type author
+    text = positive+";"+entity.Guid+";"+entity.ParentGuid+
+      ";"+entity.TargetType+";"+entity.DiasporaHandle
   case *EntityStatusMessage:
     // parent author signature
     //timeLayout := "2006-01-02T15:04:05-07:00"
