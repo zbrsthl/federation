@@ -24,7 +24,7 @@ import (
 
 func MagicEnvelope(privkey string, handle, plainXml []byte) (payload []byte, err error) {
   info("plain xml", string(plainXml))
-  info("privkey", privkey)
+  info("privkey length", len(privkey))
   info("handle", string(handle))
 
   data := base64.URLEncoding.EncodeToString(plainXml)
