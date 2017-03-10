@@ -30,7 +30,6 @@ import (
   "encoding/xml"
   "encoding/json"
   "errors"
-  "github.com/revel/revel"
 )
 
 func ParseBase64RSAPubKey(encodedKey string) (pubkey *rsa.PublicKey, err error) {
