@@ -27,16 +27,23 @@ import (
   "strings"
 )
 
+const (
+  PROTO_HTTP = "http://"
+  PROTO_HTTPS = "https://"
+)
+
 var timeout = time.Duration(10 * time.Second)
 
-func PushXmlToPublic(host string, body io.Reader, ssl bool) error {
-  proto :=  "https://"
-  if !ssl {
-    proto = "http://"
-  }
+func PushXmlToPrivate(host, guid string, body io.Reader) error {
+  return pushXml(host, "/receive/users/" + guid, PROTO_HTTPS, body)
+}
 
-  req, err := http.NewRequest("POST",
-    proto + host + "/receive/public", body)
+func PushXmlToPublic(host string, body io.Reader) error {
+  return pushXml(host, "/receive/public", PROTO_HTTPS, body)
+}
+
+func pushXml(host, endpoint, proto string, body io.Reader) error {
+  req, err := http.NewRequest("POST", proto + host + endpoint, body)
   if err != nil {
     return err
   }
@@ -47,16 +54,16 @@ func PushXmlToPublic(host string, body io.Reader, ssl bool) error {
   }
   resp, err := client.Do(req)
   if err != nil {
-    if ssl {
-      info("Retry with", proto, "on", host, err)
-      return PushXmlToPublic(host, body, false)
+    if proto == PROTO_HTTPS {
+      info("Retry with", PROTO_HTTP, "on", host, err)
+      return pushXml(host, endpoint, PROTO_HTTP, body)
     }
     return err
   }
   defer resp.Body.Close()
 
   if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
-    return errors.New("PushXmlToPublic results in: " + resp.Status)
+    return errors.New("pushXml results in: " + resp.Status)
   }
   return nil
 }
