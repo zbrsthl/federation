@@ -52,3 +52,7 @@ func MagicEnvelope(privkey string, handle, plainXml []byte) (payload []byte, err
   info("payload", string(payload))
   return
 }
+
+//func EncryptedMagicEnvelope(privkey, pubkey string, handle, plainXml []byte) (payload []byte, err error) {
+//
+//}

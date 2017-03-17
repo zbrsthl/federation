@@ -70,8 +70,12 @@ func (request *DiasporaUnmarshal) ParsePrivate(pubkey []byte) (entity Entity, er
     return
   }
 
-  var xmlPayload []byte
-  err = request.DecryptedHeader.DecryptAES(&xmlPayload, request.Env.Data.Data)
+  aesKeySet := Aes{
+    Key: request.DecryptedHeader.AesKey,
+    Iv: request.DecryptedHeader.Iv,
+    Data: request.Env.Data.Data,
+  }
+  xmlPayload, err := aesKeySet.Decrypt()
   if err != nil {
     warn(err)
     return

@@ -23,8 +23,6 @@ import (
   "crypto/x509"
   "crypto/rand"
   "crypto/sha256"
-  "crypto/aes"
-  "crypto/cipher"
   "encoding/base64"
   "encoding/pem"
   "encoding/xml"
@@ -70,69 +68,6 @@ func ParseRSAPrivKey(decodedKey []byte) (privkey *rsa.PrivateKey, err error) {
     return
   }
   return
-}
-
-func (aes *XmlDecryptedHeader) DecryptAES(ciphertext *[]byte, data string) error {
-  key, err := base64.StdEncoding.DecodeString(aes.AesKey)
-  if err != nil {
-    return err
-  }
-
-  iv, err := base64.StdEncoding.DecodeString(aes.Iv)
-  if err != nil {
-    return err
-  }
-
-  *ciphertext, err = base64.URLEncoding.DecodeString(data)
-  if err != nil {
-    return err
-  }
-  // diaspora magic do it twice
-  *ciphertext, err = base64.StdEncoding.DecodeString(string(*ciphertext))
-  if err != nil {
-    return err
-  }
-
-  *ciphertext, err = DecryptAES(key, iv, *ciphertext)
-  if err != nil {
-    return err
-  }
-  return nil
-}
-
-func (aes *JsonAesKey) DecryptAES(ciphertext *[]byte, data string) error {
-  key, err := base64.StdEncoding.DecodeString(aes.Key)
-  if err != nil {
-    return err
-  }
-
-  iv, err := base64.StdEncoding.DecodeString(aes.Iv)
-  if err != nil {
-    return err
-  }
-
-  *ciphertext, err = base64.StdEncoding.DecodeString(data)
-  if err != nil {
-    return err
-  }
-
-  *ciphertext, err = DecryptAES(key, iv, *ciphertext)
-  if err != nil {
-    return err
-  }
-  return nil
-}
-
-func DecryptAES(key, iv, ciphertext []byte) ([]byte, error) {
-  block, err := aes.NewCipher(key)
-  if err != nil {
-    return ciphertext, err
-  }
-
-  mode := cipher.NewCBCDecrypter(block, iv)
-  mode.CryptBlocks(ciphertext, ciphertext)
-
-  return ciphertext, nil
 }
 
 func (request *DiasporaUnmarshal) VerifySignature(serialized []byte) error {
@@ -250,14 +185,14 @@ func (request *DiasporaUnmarshal) DecryptHeader(serialized []byte) error {
     return err
   }
 
-  var aesKey JsonAesKey
-  err = json.Unmarshal(aesKeyJson, &aesKey)
+  var aesKeySet Aes
+  err = json.Unmarshal(aesKeyJson, &aesKeySet)
   if err != nil {
     return err
   }
+  aesKeySet.Data = header.Ciphertext
 
-  var ciphertext []byte
-  err = aesKey.DecryptAES(&ciphertext, header.Ciphertext)
+  ciphertext, err := aesKeySet.Decrypt()
   if err != nil {
     return err
   }

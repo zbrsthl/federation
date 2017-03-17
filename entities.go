@@ -35,11 +35,6 @@ type XmlDecryptedHeader struct {
   AuthorId string `xml:"author_id"`
 }
 
-type JsonAesKey struct {
-  Key string `json:"key,omitempty"`
-  Iv string `json:"iv,omitempty"`
-}
-
 type JsonEnvHeader struct {
   AesKey string `json:"aes_key"`
   Ciphertext string `json:"ciphertext"`
