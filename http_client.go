@@ -47,11 +47,14 @@ func pushXml(host, endpoint, proto string, body io.Reader) error {
   if err != nil {
     return err
   }
-  req.Header.Set("Content-Type", "application/magic-envelope+xml")
 
-  client := &http.Client{
-    Timeout: timeout,
+  if strings.Contains(endpoint, "public") {
+    req.Header.Add("Content-Type", "application/magic-envelope+xml")
+  } else {
+    req.Header.Add("Content-Type", "application/json")
   }
+
+  client := &http.Client{Timeout: timeout}
   resp, err := client.Do(req)
   if err != nil {
     if proto == PROTO_HTTPS {

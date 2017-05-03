@@ -25,8 +25,6 @@ import (
   "crypto/sha256"
   "encoding/base64"
   "encoding/pem"
-  "encoding/xml"
-  "encoding/json"
   "errors"
 )
 
@@ -119,7 +117,7 @@ func AuthorSignature(data interface{}, privKey string) (string, error) {
   return Sign(text, privKey)
 }
 
-func (d *DiasporaMarshal) Sign(privKey string) (err error) {
+func (d *PrivateEnvMarshal) Sign(privKey string) (err error) {
   type64 := base64.StdEncoding.EncodeToString(
     []byte(d.Data.Type),
   )
@@ -156,52 +154,4 @@ func Sign(text, privKey string) (sig string, err error) {
 }
 
 
-func (request *DiasporaUnmarshal) DecryptHeader(serialized []byte) error {
-  header := JsonEnvHeader{}
-  decryptedHeader := XmlDecryptedHeader{}
 
-  decoded, err := base64.StdEncoding.DecodeString(request.EncryptedHeader)
-  if err != nil {
-    return err
-  }
-
-  err = json.Unmarshal(decoded, &header)
-  if err != nil {
-    return err
-  }
-
-  privkey, err := ParseRSAPrivKey(serialized)
-  if err != nil {
-    return err
-  }
-
-  decoded, err = base64.StdEncoding.DecodeString(header.AesKey)
-  if err != nil {
-    return err
-  }
-
-  aesKeyJson, err := rsa.DecryptPKCS1v15(rand.Reader, privkey, decoded)
-  if err != nil {
-    return err
-  }
-
-  var aesKeySet Aes
-  err = json.Unmarshal(aesKeyJson, &aesKeySet)
-  if err != nil {
-    return err
-  }
-  aesKeySet.Data = header.Ciphertext
-
-  ciphertext, err := aesKeySet.Decrypt()
-  if err != nil {
-    return err
-  }
-
-  err = xml.Unmarshal(ciphertext, &decryptedHeader)
-  if err != nil {
-    return err
-  }
-
-  (*request).DecryptedHeader = &decryptedHeader
-  return nil
-}
