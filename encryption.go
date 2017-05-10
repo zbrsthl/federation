@@ -100,6 +100,8 @@ func (request *DiasporaUnmarshal) VerifySignature(serialized []byte) error {
 }
 
 func AuthorSignature(data interface{}, privKey string) (string, error) {
+  // XXX the order should be tracked in the database
+  // otherwise this can break stuff very quickly
   var text string
   switch entity := data.(type) {
   case *EntityComment:
@@ -113,24 +115,26 @@ func AuthorSignature(data interface{}, privKey string) (string, error) {
     // positive guid parent_guid parent_type author
     text = positive+";"+entity.Guid+";"+entity.ParentGuid+
       ";"+entity.TargetType+";"+entity.DiasporaHandle
+  default:
+    panic("Not supported interface type for AuthorSignature!")
   }
   return Sign(text, privKey)
 }
 
-func (d *PrivateEnvMarshal) Sign(privKey string) (err error) {
+func (envelope *MagicEnvelopeMarshal) Sign(privKey string) (err error) {
   type64 := base64.StdEncoding.EncodeToString(
-    []byte(d.Data.Type),
+    []byte(envelope.Data.Type),
   )
   encoding64 := base64.StdEncoding.EncodeToString(
-    []byte(d.Encoding),
+    []byte(envelope.Encoding),
   )
   alg64 := base64.StdEncoding.EncodeToString(
-    []byte(d.Alg),
+    []byte(envelope.Alg),
   )
 
-  text := d.Data.Data + "." + type64 +
+  text := envelope.Data.Data + "." + type64 +
     "." + encoding64 + "." + alg64
-  (*d).Sig.Sig, err = Sign(text, privKey)
+  (*envelope).Sig.Sig, err = Sign(text, privKey)
   return
 }
 

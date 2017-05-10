@@ -25,67 +25,37 @@ import(
   "crypto/rand"
 )
 
-func (request *PrivateMarshal) EncryptHeader(authorId string, serializedPubKey []byte) (err error) {
-  // Generate the AES key before you start
-  // encrypting the plain header
-  var aesKeySet Aes
-  err = aesKeySet.Generate()
-  if err != nil {
-    return
-  }
-  // The actual header
-  //
-  //  <decrypted_header>
-  //     <iv>...</iv>
-  //     <aes_key>...</aes_key>
-  //     <author_id>one@two.tld</author_id>
-  //   </decrypted_header>
-  decryptedHeader := XmlDecryptedHeader{
-    Iv: aesKeySet.Iv,
-    AesKey: aesKeySet.Key,
-    AuthorId: authorId,
-  }
+/* Header
 
-  decryptedHeaderXml, err := json.Marshal(decryptedHeader)
-  if err != nil {
-    return err
-  }
+  <?xml version="1.0" encoding="UTF-8"?>
+  <diaspora xmlns="https://joindiaspora.com/protocol" xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <header>
+      <author_id>dia@192.168.0.173:3000</author_id>
+    </header>
+*/
+type Header struct {
+  XMLName xml.Name `xml:"header"`
+  AuthorId string `xml:"author_id"`
+}
+/* Decrypted Header
 
-  err = aesKeySet.Encrypt(decryptedHeaderXml)
-  if err != nil {
-    return
-  }
+  <?xml version="1.0" encoding="UTF-8"?>
+  <decrypted_header>
+    <iv>...</iv>
+    <aes_key>...</aes_key>
+    <author_id>one@two.tld</author_id>
+  </decrypted_header>
+*/
+type XmlDecryptedHeader struct {
+  XMLName xml.Name `xml:"decrypted_header"`
+  Iv string `xml:"iv"`
+  AesKey string `xml:"aes_key"`
+  AuthorId string `xml:"author_id"`
+}
 
-  aesKeySetXml, err := json.Marshal(aesKeySet)
-  if err != nil {
-    return err
-  }
-
-  pubKey, err := ParseRSAPubKey(serializedPubKey)
-  if err != nil {
-    return err
-  }
-
-  // aes_key
-  aesKey, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey, aesKeySetXml)
-  if err != nil {
-    return err
-  }
-
-  aesKeyEncoded := base64.StdEncoding.EncodeToString(aesKey)
-
-  header := JsonEnvHeader{
-    AesKey: aesKeyEncoded,
-    Ciphertext: aesKeySet.Data,
-  }
-
-  headerXml, err := json.Marshal(header)
-  if err != nil {
-    return err
-  }
-
-  (*request).EncryptedHeader = base64.StdEncoding.EncodeToString(headerXml)
-  return
+type JsonEnvHeader struct {
+  AesKey string `json:"aes_key"`
+  Ciphertext string `json:"ciphertext"`
 }
 
 func (request *DiasporaUnmarshal) DecryptHeader(serialized []byte) error {

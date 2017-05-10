@@ -20,12 +20,27 @@ package federation
 import (
   "encoding/base64"
   "encoding/xml"
-
-  //XXX
   "encoding/json"
   "crypto/rsa"
   "crypto/rand"
 )
+
+type MagicEnvelopeMarshal struct {
+  XMLName xml.Name `xml:"me:env"`
+  Me string `xml:"xmlns:me,attr"`
+  Data struct {
+    XMLName xml.Name `xml:"me:data"`
+    Type string `xml:"type,attr"`
+    Data string `xml:",chardata"`
+  }
+  Encoding string `xml:"me:encoding"`
+  Alg string `xml:"me:alg"`
+  Sig struct {
+    XMLName xml.Name `xml:"me:sig"`
+    Sig string `xml:",chardata"`
+    KeyId string `xml:"key_id,attr,omitempty"`
+  }
+}
 
 func MagicEnvelope(privkey, handle string, plainXml []byte) (payload []byte, err error) {
   info("plain xml", string(plainXml))
@@ -35,7 +50,7 @@ func MagicEnvelope(privkey, handle string, plainXml []byte) (payload []byte, err
   data := base64.URLEncoding.EncodeToString(plainXml)
   keyId := base64.URLEncoding.EncodeToString([]byte(handle))
 
-  xmlBody := PrivateEnvMarshal{}
+  xmlBody := MagicEnvelopeMarshal{}
   xmlBody.Data.Type = APPLICATION_XML
   xmlBody.Data.Data = data
   xmlBody.Me = XMLNS_ME
@@ -59,6 +74,9 @@ func MagicEnvelope(privkey, handle string, plainXml []byte) (payload []byte, err
 }
 
 func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte) (payload []byte, err error) {
+  var aesKeySet Aes
+  var aesWrapper AesWrapper
+
   info("serialized xml", string(serializedXml))
   info("privkey length", len(privkey))
   info("pubkey length", len(pubkey))
@@ -67,58 +85,46 @@ func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte
   data := base64.URLEncoding.EncodeToString(serializedXml)
   keyId := base64.URLEncoding.EncodeToString([]byte(handle))
 
-  // encrypted header
-  //xmlBody := PrivateMarshal{
-  //  Xmlns: XMLNS,
-  //  XmlnsMe: XMLNS_ME,
-  xmlBodyEnv := PrivateEnvMarshal{
+  envelope := MagicEnvelopeMarshal{
     Me: XMLNS_ME,
     Encoding: BASE64_URL,
     Alg: RSA_SHA256,
   }
-  //}
-  xmlBodyEnv.Data.Type = APPLICATION_XML
-  xmlBodyEnv.Data.Data = data
-  xmlBodyEnv.Sig.KeyId = keyId
+  envelope.Data.Type = APPLICATION_XML
+  envelope.Data.Data = data
+  envelope.Sig.KeyId = keyId
 
-  err = xmlBodyEnv.Sign(privkey)
+  err = envelope.Sign(privkey)
   if err != nil {
     warn(err)
     return
   }
 
-  // XXX NOTE move below to header file
-
-
   // Generate a new AES key pair
-  var (
-    aesKeySet Aes
-    aesWrapper AesWrapper
-  )
   err = aesKeySet.Generate()
   if err != nil {
     warn(err)
     return
   }
 
-  // payload mit aes versch und base64
-  payload, err = xml.Marshal(xmlBodyEnv)
+  // payload with aes encryption
+  payload, err = xml.Marshal(envelope)
   if err != nil {
     warn(err)
     return
   }
+
+  info("payload, err = xml.Marshal(envelope) ", string(payload))
 
   err = aesKeySet.Encrypt(payload)
   if err != nil {
     warn(err)
     return
   }
-
   //aesWrapper.MagicEnvelope = base64.StdEncoding.EncodeToString([]byte(aesKeySet.Data))
   aesWrapper.MagicEnvelope = aesKeySet.Data
 
-  // aes mit pub key versch
-
+  // aes with rsa encryption
   aesKeySetXml, err := json.Marshal(aesKeySet)
   if err != nil {
     warn(err)
@@ -133,22 +139,18 @@ func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte
 
   info("aesKeySetXml", string(aesKeySetXml))
 
-  // aes_key
   aesKey, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey, aesKeySetXml)
   if err != nil {
     warn(err)
     return
   }
-
   aesWrapper.AesKey = base64.StdEncoding.EncodeToString(aesKey)
-
 
   payload, err = json.Marshal(aesWrapper)
   if err != nil {
     warn(err)
     return
   }
-
 
   info("payload", string(payload))
   return

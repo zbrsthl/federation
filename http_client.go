@@ -30,36 +30,38 @@ import (
 const (
   PROTO_HTTP = "http://"
   PROTO_HTTPS = "https://"
+  CONTENT_TYPE_ENVELOPE = "application/magic-envelope+xml"
+  CONTENT_TYPE_JSON = "application/json"
+  CONTENT_TYPE_FORM = "application/x-www-form-urlencoded"
 )
 
 var timeout = time.Duration(10 * time.Second)
 
-func PushXmlToPrivate(host, guid string, body io.Reader) error {
-  return pushXml(host, "/receive/users/" + guid, PROTO_HTTPS, body)
+func PushJsonToPrivate(host, guid string, body io.Reader) error {
+  return push(host, "/receive/users/" + guid, PROTO_HTTPS, CONTENT_TYPE_JSON, body)
 }
 
 func PushXmlToPublic(host string, body io.Reader) error {
-  return pushXml(host, "/receive/public", PROTO_HTTPS, body)
+  return push(host, "/receive/public", PROTO_HTTPS, CONTENT_TYPE_ENVELOPE, body)
 }
 
-func pushXml(host, endpoint, proto string, body io.Reader) error {
+func PushFormToPrivate(host, guid string, body io.Reader) error {
+  return push(host, "/receive/users/" + guid, PROTO_HTTPS, CONTENT_TYPE_FORM, body)
+}
+
+func push(host, endpoint, proto, contentType string, body io.Reader) error {
   req, err := http.NewRequest("POST", proto + host + endpoint, body)
   if err != nil {
     return err
   }
-
-  if strings.Contains(endpoint, "public") {
-    req.Header.Add("Content-Type", "application/magic-envelope+xml")
-  } else {
-    req.Header.Add("Content-Type", "application/json")
-  }
+  req.Header.Add("Content-Type", contentType)
 
   client := &http.Client{Timeout: timeout}
   resp, err := client.Do(req)
   if err != nil {
     if proto == PROTO_HTTPS {
       info("Retry with", PROTO_HTTP, "on", host, err)
-      return pushXml(host, endpoint, PROTO_HTTP, body)
+      return push(host, endpoint, PROTO_HTTP, contentType, body)
     }
     return err
   }

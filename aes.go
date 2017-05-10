@@ -19,10 +19,10 @@ package federation
 
 import (
   "bytes"
+  "io"
   "encoding/base64"
   "crypto/aes"
   "crypto/cipher"
-  "io"
   "crypto/rand"
 )
 
@@ -63,15 +63,9 @@ func (a *Aes) Encrypt(data []byte) error {
   // CBC mode works on blocks so plaintexts may need to be padded to the
   // next whole block. For an example of such padding, see
   // https://tools.ietf.org/html/rfc5246#section-6.2.3.2.
-  if len(data)%aes.BlockSize != 0 {
-    paddingLen := aes.BlockSize - (len(data)%aes.BlockSize)
-    paddingText := bytes.Repeat([]byte{byte(paddingLen)}, paddingLen)
-
-    //for i := 0; i < paddingLen; i++ {
-    //  data = append(data, 0x20)
-    //}
-    data = append(data, paddingText...)
-  }
+  padding := aes.BlockSize - len(data)%aes.BlockSize
+  padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+  data = append(data, padtext...)
 
   key, err := base64.StdEncoding.DecodeString(a.Key)
   if err != nil {
@@ -91,7 +85,7 @@ func (a *Aes) Encrypt(data []byte) error {
   }
 
   mode := cipher.NewCBCEncrypter(block, iv)
-  mode.CryptBlocks(ciphertext[:], data)
+  mode.CryptBlocks(ciphertext, data)
 
   a.Data = base64.StdEncoding.EncodeToString(ciphertext)
   return nil
