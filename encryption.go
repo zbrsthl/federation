@@ -26,6 +26,8 @@ import (
   "encoding/base64"
   "encoding/pem"
   "errors"
+  "reflect"
+  "strings"
 )
 
 func ParseBase64RSAPubKey(encodedKey string) (pubkey *rsa.PublicKey, err error) {
@@ -99,25 +101,39 @@ func (request *DiasporaUnmarshal) VerifySignature(serialized []byte) error {
   return rsa.VerifyPKCS1v15(pubkey, crypto.SHA256, digest, ds)
 }
 
-func AuthorSignature(data interface{}, privKey string) (string, error) {
-  // XXX the order should be tracked in the database
-  // otherwise this can break stuff very quickly
+func AuthorSignature(data interface{}, order, privKey string) (string, error) {
   var text string
-  switch entity := data.(type) {
-  case *EntityComment:
-    text = entity.DiasporaHandle+";"+entity.Guid+";"+
-      entity.ParentGuid+";"+entity.Text
-  case *EntityLike:
-    positive := "false"
-    if entity.Positive {
-      positive = "true"
+  var r = reflect.TypeOf(data)
+  var v = reflect.ValueOf(data)
+
+  for _, o := range strings.Split(order, " ") {
+    for i := 0; i < r.NumField(); i++ {
+      tagList := strings.Split(r.Field(i).Tag.Get("xml"), ",")
+      if len(tagList) <= 0 {
+        panic("xml struct always requires an xml tag for signatures")
+      }
+      tag := tagList[0] // the first element is always the xml name
+
+      if tag == o {
+        value := v.Field(i).Interface()
+        switch v := value.(type) {
+        case string:
+          text += v + ";"
+        case bool:
+          positive := "false"
+          if v {
+            positive = "true"
+          }
+          text += positive + ";"
+        default:
+          fatal("Unknown type in AuthorSignature that will break federation!")
+        }
+      }
     }
-    // positive guid parent_guid parent_type author
-    text = positive+";"+entity.Guid+";"+entity.ParentGuid+
-      ";"+entity.TargetType+";"+entity.DiasporaHandle
-  default:
-    panic("Not supported interface type for AuthorSignature!")
   }
+  // trim last semicolon
+  text = text[:len(text)-1]
+
   return Sign(text, privKey)
 }
 
@@ -154,8 +170,6 @@ func Sign(text, privKey string) (sig string, err error) {
   if err != nil {
     return "", err
   }
+
   return base64.StdEncoding.EncodeToString(sigInByte), nil
 }
-
-
-

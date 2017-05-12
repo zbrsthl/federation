@@ -28,7 +28,6 @@ func PreparePublicRequest(body string) (request DiasporaUnmarshal, err error) {
     warn(err)
     return
   }
-  info("public request", request.Env.Data)
   return
 }
 
@@ -59,7 +58,6 @@ func PreparePrivateRequest(body string, privkey []byte) (request DiasporaUnmarsh
     warn(err)
     return
   }
-  info("private request to", request.Env.Data)
   return
 }
 
@@ -84,6 +82,10 @@ func (request *DiasporaUnmarshal) ParsePrivate(pubkey []byte) (entity Entity, er
 }
 
 func _parse(payload []byte) (entity Entity, err error) {
+  info("received payload", string(payload))
+
+  entity.SignatureOrder = ExtractEntityOrder(string(payload))
+
   err = xml.Unmarshal(payload, &entity)
   if err != nil {
     warn(err)

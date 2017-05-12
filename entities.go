@@ -55,7 +55,7 @@ type DiasporaUnmarshal struct {
 type Entity struct {
   XMLName xml.Name `xml:"XML"`
   Post EntityPost `xml:"post"`
-  RequestBody []byte `xml:"-"` // original body payload
+  SignatureOrder string `xml:"-"`
 }
 
 type EntityPost struct {
