@@ -18,7 +18,7 @@ package federation
 //
 
 type EntityProfile struct {
-  DiasporaHandle string `xml:"diaspora_handle"`
+  Author string `xml:"author"`
   FirstName string `xml:"first_name"`
   LastName string `xml:"last_name"`
   ImageUrl string `xml:"image_url"`
@@ -29,6 +29,7 @@ type EntityProfile struct {
   Bio string `xml:"bio"`
   Location string `xml:"location"`
   Searchable bool `xml:"searchable"`
+  Public bool `xml:"public"`
   Nsfw bool `xml:"nsfw"`
   TagString string `xml:"tag_string"`
 }

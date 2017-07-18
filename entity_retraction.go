@@ -17,16 +17,8 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-type EntityRelayableSignedRetraction struct {
+type EntityRetraction struct {
+  Author string `xml:"author"`
   TargetGuid string `xml:"target_guid"`
   TargetType string `xml:"target_type"`
-  SenderHandle string `xml:"sender_handle"`
-  TargetAuthorSignature string `xml:"target_author_signature"`
-  ParentAuthorSignature string `xml:"parent_author_signature"`
-}
-
-type EntityRetraction struct {
-  DiasporaHandle string `xml:"diaspora_handle"`
-  PostGuid string `xml:"post_guid"`
-  Type string `xml:"type"`
 }

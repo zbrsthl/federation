@@ -23,11 +23,32 @@ import (
   "errors"
 )
 
+func FetchEntityOrder(entityXML string) (order string) {
+  re := regexp.MustCompile(`<([^>]+?)>[^<]+?</[^>]+?>`)
+  elements := re.FindAllStringSubmatch(entityXML, -1)
+  for _, element := range elements {
+    if len(element) == 2 {
+      switch element[1] {
+      case "author_signature":
+      case "parent_author_signature":
+      default:
+        order += element[1] + " "
+      }
+    }
+  }
+  return order[:len(order)-1] // trim space
+}
+
 // This is a workaround for sorting xml elements. Diaspora requires
 // a specific order otherwise the signature check will fail and
 // ignore the entity. This should be a TODO since we could implement
 // this kind of logic in a custom xml marshaller
 func SortByEntityOrder(order string, entity []byte) (sorted []byte) {
+  // if we do not require sorting skip it
+  if order == "" {
+    return entity
+  }
+
   // remove all newline character
   entity = []byte(strings.Replace(string(entity), "\n", "", -1))
   entity = []byte(strings.Replace(string(entity), "\r", "", -1))
@@ -115,14 +136,6 @@ func ExtractEntityOrder(entity string) string {
     order = append(order, e[1])
   }
   return strings.Join(order, " ")
-}
-
-func ParseDiasporaHandle(handle string) (string, string, error) {
-  parts, err := parseStringHelper(handle, `^(.+?)@(.+?)$`, 2)
-  if err != nil {
-    return "", "", err
-  }
-  return parts[1], parts[2], nil
 }
 
 func ParseWebfingerHandle(handle string) (string, error) {

@@ -17,7 +17,9 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-type EntityRequest struct {
-  Sender string `xml:"sender_handle"`
-  Recipient string `xml:"recipient_handle"`
+type EntityContact struct {
+  Author string `xml:"author"`
+  Recipient string `xml:"recipient"`
+  Following bool `xml:"following"`
+  Sharing bool `xml:"sharing"`
 }

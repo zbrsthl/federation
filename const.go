@@ -23,4 +23,13 @@ const (
   APPLICATION_XML = "application/xml"
   BASE64_URL = "base64url"
   RSA_SHA256 = "RSA-SHA256"
+
+  // entity names
+  Retraction = "retraction"
+  Profile = "profile"
+  StatusMessage = "status_message"
+  Reshare = "reshare"
+  Comment = "comment"
+  Like = "like"
+  Contact = "contact"
 )

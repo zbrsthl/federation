@@ -21,10 +21,11 @@ import "encoding/xml"
 
 type EntityComment struct {
   XMLName xml.Name `xml:"comment"`
-  DiasporaHandle string `xml:"diaspora_handle"`
+  Author string `xml:"author"`
   Guid string `xml:"guid"`
   ParentGuid string `xml:"parent_guid"`
   Text string `xml:"text"`
   AuthorSignature string `xml:"author_signature"`
   ParentAuthorSignature string `xml:"parent_author_signature"`
+  SignatureOrder string `xml:"-"`
 }

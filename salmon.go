@@ -20,76 +20,58 @@ package federation
 import (
   "encoding/xml"
   "encoding/base64"
+  "strings"
 )
 
-func PreparePublicRequest(body string) (request DiasporaUnmarshal, err error) {
-  err = xml.Unmarshal([]byte(body), &request)
+func ParseDecryptedRequest(entityXML []byte) (message Message, err error) {
+  err = xml.Unmarshal(entityXML, &message)
   if err != nil {
-    warn(err)
+    fatal(err)
     return
   }
+
+  if !strings.EqualFold(message.Encoding, BASE64_URL) {
+    fatal(err)
+    return
+  }
+
+  if !strings.EqualFold(message.Alg, RSA_SHA256) {
+    fatal(err)
+    return
+  }
+
+  keyId, err := base64.StdEncoding.DecodeString(message.Sig.KeyId)
+  if err != nil {
+    fatal(err)
+    return
+  }
+  message.Sig.KeyId = string(keyId)
+
+  data, err := base64.URLEncoding.DecodeString(message.Data.Data)
+  if err != nil {
+    fatal(err)
+    return
+  }
+
+
+  var entity = Entity{
+    SignatureOrder: FetchEntityOrder(string(data)),
+  }
+  err = xml.Unmarshal(data, &entity)
+  if err != nil {
+    fatal(err)
+    return
+  }
+  message.Entity = entity
   return
 }
 
-func (request *DiasporaUnmarshal) Parse(pubkey []byte) (entity Entity, err error) {
-  err = request.VerifySignature(pubkey)
+func ParseEncryptedRequest(wrapper AesWrapper, privkey []byte) (message Message, err error) {
+  entityXML, err := wrapper.Decrypt(privkey)
   if err != nil {
-    warn(err)
+    fatal(err)
     return
   }
 
-  xmlPayload, err := base64.URLEncoding.DecodeString(request.Env.Data.Data)
-  if err != nil {
-    warn(err)
-    return
-  }
-  return _parse(xmlPayload)
-}
-
-func PreparePrivateRequest(body string, privkey []byte) (request DiasporaUnmarshal, err error) {
-  err = xml.Unmarshal([]byte(body), &request)
-  if err != nil {
-    warn(err)
-    return
-  }
-
-  err = request.DecryptHeader(privkey)
-  if err != nil {
-    warn(err)
-    return
-  }
-  return
-}
-
-func (request *DiasporaUnmarshal) ParsePrivate(pubkey []byte) (entity Entity, err error) {
-  err = request.VerifySignature(pubkey)
-  if err != nil {
-    warn(err)
-    return
-  }
-
-  aesKeySet := Aes{
-    Key: request.DecryptedHeader.AesKey,
-    Iv: request.DecryptedHeader.Iv,
-    Data: request.Env.Data.Data,
-  }
-  xmlPayload, err := aesKeySet.Decrypt()
-  if err != nil {
-    warn(err)
-    return
-  }
-  return _parse(xmlPayload)
-}
-
-func _parse(payload []byte) (entity Entity, err error) {
-  info("received payload", string(payload))
-
-  entity.SignatureOrder = ExtractEntityOrder(string(payload))
-
-  err = xml.Unmarshal(payload, &entity)
-  if err != nil {
-    warn(err)
-    return
-  }
-  return
+  return ParseDecryptedRequest(entityXML)
 }

@@ -17,14 +17,18 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "time"
+import (
+  "time"
+  "encoding/xml"
+)
 
 type EntityStatusMessage struct {
-  DiasporaHandle string `xml:"diaspora_handle"`
+  XMLName xml.Name `xml:"status_message"`
+  Author string `xml:"author"`
   Guid string `xml:"guid"`
   CreatedAt time.Time `xml:"created_at"`
   ProviderName string `xml:"provider_display_name"`
-  RawMessage string `xml:"raw_message,omitempty"`
+  Text string `xml:"text,omitempty"`
   Photo *EntityPhotos `xml:"photo,omitempty"`
   Location *EntityLocation `xml:"location,omitempty"`
   Poll *EntityPoll `xml:"poll,omitempty"`

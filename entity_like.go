@@ -17,12 +17,15 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+import "encoding/xml"
+
 type EntityLike struct {
+  XMLName xml.Name `xml:"like"`
   Positive bool `xml:"positive"`
   Guid string `xml:"guid"`
   ParentGuid string `xml:"parent_guid"`
-  TargetType string `xml:"target_type"`
-  DiasporaHandle string `xml:"diaspora_handle"`
+  TargetType string `xml:"parent_type"`
+  Author string `xml:"author"`
   AuthorSignature string `xml:"author_signature"`
   ParentAuthorSignature string `xml:"parent_author_signature"`
 }

@@ -17,56 +17,109 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "encoding/xml"
+import (
+  "errors"
+  "encoding/xml"
+  "reflect"
+  "strings"
+)
 
-// NOTE I had huge problems with marshal
-// and unmarshal with the same structs
-// apperently namespaces in tags are a problem
-// for the go xml implementation
-
-type DiasporaUnmarshal struct {
-  XMLName xml.Name `xml:"diaspora"`
-  Xmlns string `xml:"xmlns,attr"`
-  XmlnsMe string `xml:"me,attr"`
-  Header struct {
-    XMLName xml.Name `xml:"header"`
-    AuthorId string `xml:"author_id"`
+type Message struct {
+  XMLName xml.Name `xml:"env"`
+  Me string `xml:"me,attr"`
+  Data struct {
+    XMLName xml.Name `xml:"data"`
+    Type string `xml:"type,attr"`
+    Data string `xml:",chardata"`
   }
-  EncryptedHeader string `xml:"encrypted_header,omitempty"`
-  DecryptedHeader *XmlDecryptedHeader `xml:",omitempty"`
-  Env struct {
-    XMLName xml.Name `xml:"env"`
-    Me string `xml:"me,attr"`
-    Data struct {
-      XMLName xml.Name `xml:"data"`
-      Type string `xml:"type,attr"`
-      Data string `xml:",chardata"`
-    }
-    Encoding string `xml:"encoding"`
-    Alg string `xml:"alg"`
-    Sig struct {
-      XMLName xml.Name `xml:"sig"`
-      Sig string `xml:",chardata"`
-      KeyId string `xml:"key_id,attr,omitempty"`
-    }
+  Encoding string `xml:"encoding"`
+  Alg string `xml:"alg"`
+  Sig struct {
+    XMLName xml.Name `xml:"sig"`
+    Sig string `xml:",chardata"`
+    KeyId string `xml:"key_id,attr,omitempty"`
   }
+  Entity Entity `xml:"-"`
 }
 
 type Entity struct {
-  XMLName xml.Name `xml:"XML"`
-  Post EntityPost `xml:"post"`
+  XMLName xml.Name
+  // Use custom unmarshaler for xml fetch XMLName
+  // and decide which entity to use
+  Type string `xml:"-"`
   SignatureOrder string `xml:"-"`
+  Data interface{} `xml:"-"`
 }
 
-type EntityPost struct {
-  XMLName xml.Name `xml:"post,omitempty"`
-  Request *EntityRequest `xml:"request,omitempty"`
-  Retraction *EntityRetraction `xml:"retraction,omitempty"`
-  Profile *EntityProfile `xml:"profile,omitempty"`
-  Reshare *EntityStatusMessage `xml:"reshare,omitempty"`
-  StatusMessage *EntityStatusMessage `xml:"status_message,omitempty"`
-  Comment *EntityComment `xml:"comment,omitempty"`
-  Like *EntityLike `xml:"like,omitempty"`
-  SignedRetraction *EntityRelayableSignedRetraction `xml:"signed_retraction,omitempty"`
-  RelayableRetraction *EntityRelayableSignedRetraction `xml:"relayable_retraction,omitempty"`
+func (e *Entity) LocalSignatureOrder() (order string) {
+  val := reflect.TypeOf(e.Data)
+  for i := 0; i < val.NumField(); i++ {
+    params := strings.Split(val.Field(i).Tag.Get("xml"), ",")
+    if len(params) > 0 {
+      switch tagName := params[0]; tagName {
+      case "":
+      case "-":
+      case "author_signature":
+      case "parent_author_signature":
+      default:
+        order += params[0] + " "
+      }
+    }
+  }
+  return order[:len(order)-1] // trim space
+}
+
+func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+  // NOTE since the encoder ignores the interface type
+  // (see https://golang.org/src/encoding/xml/read.go#L377)
+  // we have to decode on every single step
+  switch local := start.Name.Local; local {
+  case Retraction:
+    content := EntityRetraction{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  case Profile:
+    content := EntityProfile{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  case StatusMessage:
+    fallthrough
+  case Reshare:
+    content := EntityStatusMessage{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  case Comment:
+    content := EntityComment{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  case Like:
+    content := EntityLike{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  case Contact:
+    content := EntityContact{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  default:
+    return errors.New("Entity '" + local + "' not known!")
+  }
+  return nil
 }
