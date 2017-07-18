@@ -30,14 +30,6 @@ import (
   "strings"
 )
 
-func ParseBase64RSAPubKey(encodedKey string) (pubkey *rsa.PublicKey, err error) {
-  decodedKey, err := base64.StdEncoding.DecodeString(encodedKey)
-  if err != nil {
-    return
-  }
-  return ParseRSAPubKey(decodedKey)
-}
-
 func ParseRSAPubKey(decodedKey []byte) (pubkey *rsa.PublicKey, err error) {
   block, _ := pem.Decode(decodedKey)
   if block == nil {
@@ -68,37 +60,6 @@ func ParseRSAPrivKey(decodedKey []byte) (privkey *rsa.PrivateKey, err error) {
     return
   }
   return
-}
-
-func (request *DiasporaUnmarshal) VerifySignature(serialized []byte) error {
-  pubkey, err := ParseRSAPubKey(serialized)
-  if err != nil {
-    warn(err)
-    return err
-  }
-
-  type64 := base64.StdEncoding.EncodeToString(
-    []byte(request.Env.Data.Type),
-  )
-  encoding64 := base64.StdEncoding.EncodeToString(
-    []byte(request.Env.Encoding),
-  )
-  alg64 := base64.StdEncoding.EncodeToString(
-    []byte(request.Env.Alg),
-  )
-
-  text := request.Env.Data.Data + "." + type64 + "." + encoding64 + "." + alg64
-
-  h := sha256.New()
-  h.Write([]byte(text))
-  digest := h.Sum(nil)
-
-  ds, err := base64.URLEncoding.DecodeString(request.Env.Sig.Sig)
-  if err != nil {
-    return err
-  }
-
-  return rsa.VerifyPKCS1v15(pubkey, crypto.SHA256, digest, ds)
 }
 
 func AuthorSignature(data interface{}, order, privKey string) (string, error) {

@@ -32,7 +32,6 @@ const (
   PROTO_HTTPS = "https://"
   CONTENT_TYPE_ENVELOPE = "application/magic-envelope+xml"
   CONTENT_TYPE_JSON = "application/json"
-  CONTENT_TYPE_FORM = "application/x-www-form-urlencoded"
 )
 
 var timeout = time.Duration(10 * time.Second)
@@ -43,10 +42,6 @@ func PushJsonToPrivate(host, guid string, body io.Reader) error {
 
 func PushXmlToPublic(host string, body io.Reader) error {
   return push(host, "/receive/public", PROTO_HTTPS, CONTENT_TYPE_ENVELOPE, body)
-}
-
-func PushFormToPrivate(host, guid string, body io.Reader) error {
-  return push(host, "/receive/users/" + guid, PROTO_HTTPS, CONTENT_TYPE_FORM, body)
 }
 
 func push(host, endpoint, proto, contentType string, body io.Reader) error {
@@ -68,7 +63,7 @@ func push(host, endpoint, proto, contentType string, body io.Reader) error {
   defer resp.Body.Close()
 
   if !(resp.StatusCode == 200 || resp.StatusCode == 202) {
-    return errors.New("pushXml results in: " + resp.Status)
+    return errors.New("push results in: " + resp.Status)
   }
   return nil
 }
@@ -92,7 +87,6 @@ func FetchJson(method, url string, body io.Reader, result interface{}) error {
   if err != nil {
     return err
   }
-  info(result)
   return nil
 }
 
@@ -121,7 +115,6 @@ func FetchXml(method, url string, body io.Reader, result interface{}) error {
   if err != nil {
     return err
   }
-  info(result)
   return nil
 }
 
