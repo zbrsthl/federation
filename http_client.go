@@ -36,11 +36,11 @@ const (
 
 var timeout = time.Duration(10 * time.Second)
 
-func PushJsonToPrivate(host, guid string, body io.Reader) error {
+func PushToPrivate(host, guid string, body io.Reader) error {
   return push(host, "/receive/users/" + guid, PROTO_HTTPS, CONTENT_TYPE_JSON, body)
 }
 
-func PushXmlToPublic(host string, body io.Reader) error {
+func PushToPublic(host string, body io.Reader) error {
   return push(host, "/receive/public", PROTO_HTTPS, CONTENT_TYPE_ENVELOPE, body)
 }
 
