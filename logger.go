@@ -19,7 +19,6 @@ package federation
 
 import (
   "fmt"
-  "os"
   "runtime"
   "regexp"
 )
@@ -72,5 +71,4 @@ func info(msgs... interface{}) {
 
 func fatal(msgs... interface{}) {
   log("F", msgs)
-  os.Exit(1)
 }
