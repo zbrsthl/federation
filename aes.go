@@ -21,7 +21,9 @@ import (
   "bytes"
   "io"
   "encoding/base64"
+  "encoding/json"
   "crypto/aes"
+  "crypto/rsa"
   "crypto/cipher"
   "crypto/rand"
 )
@@ -114,6 +116,36 @@ func (a Aes) Decrypt() (ciphertext []byte, err error) {
   }
 
   return decryptAES(key, iv, ciphertext)
+}
+
+func (w AesWrapper) Decrypt(serializedKey []byte) (entityXML []byte, err error) {
+  encryptedAesKey, err := base64.StdEncoding.DecodeString(w.AesKey)
+  if err != nil {
+    return
+  }
+
+  privkey, err := ParseRSAPrivKey(serializedKey)
+  if err != nil {
+    return
+  }
+
+  decryptedAesKey, err := rsa.DecryptPKCS1v15(rand.Reader, privkey, encryptedAesKey)
+  if err != nil {
+    return
+  }
+
+  var aes Aes
+  err = json.Unmarshal(decryptedAesKey, &aes)
+  if err != nil {
+    return
+  }
+
+  aes.Data = w.MagicEnvelope
+  entityXML, err = aes.Decrypt()
+  if err != nil {
+    return
+  }
+  return
 }
 
 func decryptAES(key, iv, ciphertext []byte) ([]byte, error) {
