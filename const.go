@@ -32,4 +32,8 @@ const (
   Comment = "comment"
   Like = "like"
   Contact = "contact"
+
+  // webfinger
+  WebFingerOstatus = "http://ostatus.org/schema/1.0/subscribe"
+  WebFingerHcard = "http://microformats.org/profile/hcard"
 )

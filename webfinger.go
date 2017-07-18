@@ -33,6 +33,7 @@ type WebfingerXml struct {
   XMLName xml.Name `xml:"XRD"`
   Xmlns string `xml:"xmlns,attr"`
   Subject string `xml:"Subject,omitempty"`
+  Alias string `xml:"Alias,omitempty"`
   Links []WebfingerXmlLink `xml:"Link"`
 }
 
@@ -45,21 +46,24 @@ type WebfingerXmlLink struct {
 }
 
 func (w *WebFinger) Discovery() error {
-  err := FetchXml("GET", w.Host +
-    "/.well-known/host-meta", nil, &w.Xrd)
+  err := FetchXml("GET", w.Host + "/.well-known/host-meta", nil, &w.Xrd)
   if err != nil {
     return err
   }
+
   if len(w.Xrd.Links) < 1 {
     return errors.New("XRD Link missing")
   }
-  discoveryUrl := strings.Replace(
-    w.Xrd.Links[0].Template,
-    "{uri}", "acct:" + w.Handle, 1,
-  )
-  err = FetchXml("GET", discoveryUrl, nil, &w.Xrd)
-  if err != nil {
-    return err
+
+  for _, link := range w.Xrd.Links {
+    if link.Rel == "lrdd" && link.Template != "" {
+      err = FetchXml("GET", strings.Replace(
+        link.Template, "{uri}", "acct:" + w.Handle, 1), nil, &w.Xrd)
+      if err != nil {
+        return err
+      }
+      return nil
+    }
   }
-  return nil
+  return errors.New("No lrdd rel found in webfinger document!")
 }
