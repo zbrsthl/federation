@@ -20,8 +20,6 @@ package federation
 import (
   "errors"
   "encoding/xml"
-  "reflect"
-  "strings"
 )
 
 type Message struct {
@@ -49,24 +47,6 @@ type Entity struct {
   Type string `xml:"-"`
   SignatureOrder string `xml:"-"`
   Data interface{} `xml:"-"`
-}
-
-func (e *Entity) LocalSignatureOrder() (order string) {
-  val := reflect.TypeOf(e.Data)
-  for i := 0; i < val.NumField(); i++ {
-    params := strings.Split(val.Field(i).Tag.Get("xml"), ",")
-    if len(params) > 0 {
-      switch tagName := params[0]; tagName {
-      case "":
-      case "-":
-      case "author_signature":
-      case "parent_author_signature":
-      default:
-        order += params[0] + " "
-      }
-    }
-  }
-  return order[:len(order)-1] // trim space
 }
 
 func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {

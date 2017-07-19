@@ -29,3 +29,7 @@ type EntityLike struct {
   AuthorSignature string `xml:"author_signature"`
   ParentAuthorSignature string `xml:"parent_author_signature"`
 }
+
+func (e *EntityLike) SignatureOrder() string {
+  return "positive guid parent_guid target_type author"
+}

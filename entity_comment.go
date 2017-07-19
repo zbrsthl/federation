@@ -22,10 +22,14 @@ import "encoding/xml"
 type EntityComment struct {
   XMLName xml.Name `xml:"comment"`
   Author string `xml:"author"`
+  CreatedAt string `xml:"created_at"`
   Guid string `xml:"guid"`
   ParentGuid string `xml:"parent_guid"`
   Text string `xml:"text"`
   AuthorSignature string `xml:"author_signature"`
   ParentAuthorSignature string `xml:"parent_author_signature"`
-  SignatureOrder string `xml:"-"`
+}
+
+func (e *EntityComment) SignatureOrder() string {
+  return "author created_at guid parent_guid text"
 }
