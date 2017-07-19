@@ -36,6 +36,10 @@ func FetchEntityOrder(entityXML string) (order string) {
       }
     }
   }
+  if len(order) <= 0 {
+    warn("Entity order is empty")
+    return
+  }
   return order[:len(order)-1] // trim space
 }
 
