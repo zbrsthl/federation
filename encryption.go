@@ -92,6 +92,9 @@ func AuthorSignature(data interface{}, order, privKey string) (string, error) {
       }
     }
   }
+  if len(text) <= 0 {
+    return text, errors.New("AuthorSignature text is empty!")
+  }
   // trim last semicolon
   text = text[:len(text)-1]
 
