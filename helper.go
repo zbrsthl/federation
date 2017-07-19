@@ -24,7 +24,7 @@ import (
 )
 
 func FetchEntityOrder(entityXML string) (order string) {
-  re := regexp.MustCompile(`<([^>]+?)>[^<]+?</[^>]+?>`)
+  re := regexp.MustCompile(`<([^/<>]+?)>.+?</[^/<>]+?>`)
   elements := re.FindAllStringSubmatch(entityXML, -1)
   for _, element := range elements {
     if len(element) == 2 {
