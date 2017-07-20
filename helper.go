@@ -120,28 +120,6 @@ func SortByEntityOrder(order string, entity []byte) (sorted []byte) {
   return
 }
 
-func ExtractEntityOrder(entity string) string {
-  var order []string
-
-  re := regexp.MustCompile("<([^/]+?)>")
-  elements := re.FindAllStringSubmatch(entity, -1)
-
-  for index, e := range elements {
-    if index <= 2 {
-      // skip XML, post and entity name field
-      continue
-    }
-    signature := regexp.MustCompile("author_signature")
-    if signature.Find([]byte(e[1])) != nil {
-      // author_signature and parent_author_signature
-      // are not required for a valid order string
-      continue
-    }
-    order = append(order, e[1])
-  }
-  return strings.Join(order, " ")
-}
-
 func ParseWebfingerHandle(handle string) (string, error) {
   parts, err := parseStringHelper(handle, `^acct:(.+?)@.+?$`, 1)
   if err != nil {
