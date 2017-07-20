@@ -17,7 +17,10 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+import "encoding/xml"
+
 type EntityRetraction struct {
+  XMLName xml.Name `xml:"retraction"`
   Author string `xml:"author"`
   TargetGuid string `xml:"target_guid"`
   TargetType string `xml:"target_type"`
