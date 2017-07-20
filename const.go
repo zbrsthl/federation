@@ -36,4 +36,8 @@ const (
   // webfinger
   WebFingerOstatus = "http://ostatus.org/schema/1.0/subscribe"
   WebFingerHcard = "http://microformats.org/profile/hcard"
+
+  // signature types
+  AuthorSignatureType = iota
+  ParentAuthorSignatureType
 )

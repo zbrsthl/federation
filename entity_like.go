@@ -17,7 +17,10 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "encoding/xml"
+import (
+  "encoding/xml"
+  "errors"
+)
 
 type EntityLike struct {
   XMLName xml.Name `xml:"like"`
@@ -32,4 +35,20 @@ type EntityLike struct {
 
 func (e *EntityLike) SignatureOrder() string {
   return "positive guid parent_guid target_type author"
+}
+
+func (e *EntityLike) AppendSignature(privKey, order string, typ int) error {
+  signature, err := AuthorSignature(*e, privKey, order)
+  if err != nil {
+    return err
+  }
+
+  if AuthorSignatureType == typ {
+    (*e).AuthorSignature = signature
+  } else if ParentAuthorSignatureType == typ {
+    (*e).ParentAuthorSignature = signature
+  } else {
+    return errors.New("Unsupported author signature type!")
+  }
+  return nil
 }
