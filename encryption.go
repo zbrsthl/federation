@@ -87,7 +87,8 @@ func AuthorSignature(data interface{}, order, privKey string) (string, error) {
           }
           text += positive + ";"
         default:
-          fatal("Unknown type in AuthorSignature that will break federation!")
+          err := errors.New("Unknown type in AuthorSignature that will break federation!")
+          return text, err
         }
       }
     }

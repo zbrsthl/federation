@@ -53,7 +53,6 @@ func ParseDecryptedRequest(entityXML []byte) (message Message, err error) {
     return
   }
 
-
   var entity = Entity{
     SignatureOrder: FetchEntityOrder(string(data)),
   }
