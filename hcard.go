@@ -36,7 +36,6 @@ type Hcard struct {
   PhotoSmall string
 }
 
-
 func (h *Hcard) Fetch(endpoint string) error {
   resp, err := FetchHtml("GET", endpoint, nil)
   if err != nil {

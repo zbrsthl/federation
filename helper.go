@@ -94,7 +94,9 @@ func SortByEntityOrder(order string, entity []byte) (sorted []byte) {
   for _, o := range orderArr {
     re := regexp.MustCompile("<"+o+">(.+?)</"+o+">")
     elements := re.FindAllStringSubmatch(string(entity), 1)
-    sortedXmlElements += elements[0][0]
+    if len(elements) > 0 && len(elements[0]) > 0 {
+      sortedXmlElements += elements[0][0]
+    }
   }
 
   // replace only the elements we have to sort
@@ -131,7 +133,8 @@ func ParseWebfingerHandle(handle string) (string, error) {
 func parseStringHelper(line, regex string, max int) (parts []string, err error) {
   r := regexp.MustCompile(regex)
   parts = r.FindStringSubmatch(line)
-  if len(parts) < max {
+
+  if (len(parts) - 1) < max {
     err = errors.New("Cannot extract " + regex + " from " + line)
     return
   }

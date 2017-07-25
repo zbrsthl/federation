@@ -37,8 +37,8 @@ func (e *EntityLike) SignatureOrder() string {
   return "positive guid parent_guid target_type author"
 }
 
-func (e *EntityLike) AppendSignature(privKey, order string, typ int) error {
-  signature, err := AuthorSignature(*e, privKey, order)
+func (e *EntityLike) AppendSignature(privKey []byte, order string, typ int) error {
+  signature, err := AuthorSignature(*e, order, privKey)
   if err != nil {
     return err
   }

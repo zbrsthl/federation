@@ -62,7 +62,7 @@ func ParseRSAPrivKey(decodedKey []byte) (privkey *rsa.PrivateKey, err error) {
   return
 }
 
-func AuthorSignature(data interface{}, order, privKey string) (string, error) {
+func AuthorSignature(data interface{}, order string, privKey []byte) (string, error) {
   var text string
   var r = reflect.TypeOf(data)
   var v = reflect.ValueOf(data)
@@ -115,13 +115,13 @@ func (envelope *MagicEnvelopeMarshal) Sign(privKey string) (err error) {
 
   text := envelope.Data.Data + "." + type64 +
     "." + encoding64 + "." + alg64
-  (*envelope).Sig.Sig, err = Sign(text, privKey)
+  (*envelope).Sig.Sig, err = Sign(text, []byte(privKey))
   return
 }
 
 
-func Sign(text, privKey string) (sig string, err error) {
-  privkey, err := ParseRSAPrivKey([]byte(privKey))
+func Sign(text string, privKey []byte) (sig string, err error) {
+  privkey, err := ParseRSAPrivKey(privKey)
   if err != nil {
     return "", err
   }
