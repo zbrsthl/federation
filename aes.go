@@ -104,18 +104,20 @@ func (a Aes) Decrypt() (ciphertext []byte, err error) {
     return ciphertext, err
   }
 
-  headerText, fail := base64.URLEncoding.DecodeString(a.Data)
-  if fail == nil {
-    info("header aes decryption detected")
-    a.Data = string(headerText)
-  }
-
   ciphertext, err = base64.StdEncoding.DecodeString(a.Data)
   if err != nil {
     return ciphertext, err
   }
 
-  return decryptAES(key, iv, ciphertext)
+  block, err := aes.NewCipher(key)
+  if err != nil {
+    return ciphertext, err
+  }
+
+  mode := cipher.NewCBCDecrypter(block, iv)
+  mode.CryptBlocks(ciphertext, ciphertext)
+
+  return ciphertext, nil
 }
 
 func (w AesWrapper) Decrypt(serializedKey []byte) (entityXML []byte, err error) {
@@ -146,16 +148,4 @@ func (w AesWrapper) Decrypt(serializedKey []byte) (entityXML []byte, err error) 
     return
   }
   return
-}
-
-func decryptAES(key, iv, ciphertext []byte) ([]byte, error) {
-  block, err := aes.NewCipher(key)
-  if err != nil {
-    return ciphertext, err
-  }
-
-  mode := cipher.NewCBCDecrypter(block, iv)
-  mode.CryptBlocks(ciphertext, ciphertext)
-
-  return ciphertext, nil
 }

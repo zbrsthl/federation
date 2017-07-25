@@ -37,7 +37,7 @@ func (e *EntityComment) SignatureOrder() string {
   return "author created_at guid parent_guid text"
 }
 
-func (e *EntityComment) AppendSignature(privKey, order string, typ int) error {
+func (e *EntityComment) AppendSignature(privKey []byte, order string, typ int) error {
   signature, err := AuthorSignature(*e, order, privKey)
   if err != nil {
     return err
