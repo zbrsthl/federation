@@ -38,6 +38,11 @@ func TestMagicEnvelope(t *testing.T) {
     t.Errorf("Expected to be %s, got %s",
       string(TEST_MAGIC_PAYLOAD), string(payload))
   }
+
+  _, err = MagicEnvelope("", string(TEST_AUTHOR), TEST_MAGIC_DATA)
+  if err == nil {
+    t.Errorf("Expected to be an error, got nil")
+  }
 }
 
 func TestEncryptedMagicEnvelope(t *testing.T) {
@@ -56,5 +61,19 @@ func TestEncryptedMagicEnvelope(t *testing.T) {
 
   if !matched {
     t.Errorf("Expected match for pattern '%s', got nothing", pattern)
+  }
+
+  _, err = EncryptedMagicEnvelope(
+    "", string(TEST_PUB_KEY),
+    TEST_AUTHOR, TEST_MAGIC_DATA)
+  if err == nil {
+    t.Errorf("Expected to be an error, got nil")
+  }
+
+  _, err = EncryptedMagicEnvelope(
+    string(TEST_PRIV_KEY), "",
+    TEST_AUTHOR, TEST_MAGIC_DATA)
+  if err == nil {
+    t.Errorf("Expected to be an error, got nil")
   }
 }
