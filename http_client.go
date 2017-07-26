@@ -55,7 +55,7 @@ func push(host, endpoint, proto, contentType string, body io.Reader) error {
   resp, err := client.Do(req)
   if err != nil {
     if proto == PROTO_HTTPS {
-      info("Retry with", PROTO_HTTP, "on", host, err)
+      logger.Info("Retry with", PROTO_HTTP, "on", host, err)
       return push(host, endpoint, PROTO_HTTP, contentType, body)
     }
     return err

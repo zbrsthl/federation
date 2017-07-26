@@ -21,9 +21,23 @@ import (
   "fmt"
   "runtime"
   "regexp"
+  "os"
+  "log"
 )
 
-func log(label string, msgs... interface{}) {
+const (
+  LOG_C_RED = "\033[31m"
+  LOG_C_YELLOW = "\033[33m"
+  LOG_C_RESET = "\033[0m"
+)
+
+var (
+  logger Log
+  defaultLogger Logger
+  defaultPrefix string
+)
+
+func init() {
   pc := make([]uintptr, 10)  // at least 1 entry needed
   runtime.Callers(3, pc)
   f := runtime.FuncForPC(pc[0])
@@ -34,41 +48,30 @@ func log(label string, msgs... interface{}) {
     file = result[0][1]
   }
 
-  fmt.Printf("%s:%d %s ", file, line, f.Name())
-
-  for _, e := range msgs {
-    switch msg := e.(type) {
-      case error:
-        fmt.Printf("[%s] ", label)
-        fmt.Print(msg)
-      case []error:
-        fmt.Println(" \\")
-        for _, err := range msg {
-          fmt.Printf("\t[%s] ", label)
-          fmt.Println(err)
-        }
-      case string:
-        fmt.Printf("[%s] ", label)
-        fmt.Print(msg)
-      case byte, []byte:
-        fmt.Printf("[%s] ", label)
-        fmt.Print("%s", msg)
-      default:
-        fmt.Printf("[%s] ", label)
-        fmt.Print(msg)
-    }
-    fmt.Println()
-  }
+  defaultPrefix = fmt.Sprintf("%s:%d %s ", file, line, f.Name())
+  defaultLogger = log.New(os.Stdout, defaultPrefix, log.Lshortfile)
 }
 
-func warn(msgs... interface{}) {
-  log("W", msgs)
+type Logger interface {
+  Println(v... interface{})
 }
 
-func info(msgs... interface{}) {
-  log("I", msgs)
+type Log struct{
+  Logger
 }
 
-func fatal(msgs... interface{}) {
-  log("F", msgs)
+func SetLogger(logger Logger) {
+  defaultLogger = logger
+}
+
+func (l Log) Info(values... interface{}) {
+  defaultLogger.Println(values...)
+}
+
+func (l Log) Error(values... interface{}) {
+  l.Info(LOG_C_RED, values, LOG_C_RESET)
+}
+
+func (l Log) Warn(values... interface{}) {
+  l.Info(LOG_C_YELLOW, values, LOG_C_RESET)
 }
