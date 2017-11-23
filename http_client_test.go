@@ -23,6 +23,7 @@ import (
   "net/http/httptest"
   "testing"
   "encoding/xml"
+  "io/ioutil"
 )
 
 type Test struct {
@@ -86,6 +87,22 @@ func TestFetchJson(t *testing.T) {
     t.Errorf("Some error occured while sending: %v", err)
   }
 
+  err = FetchJson("GET", ts.URL, nil, nil)
+  if err == nil {
+    t.Errorf("Web request without result struct should throw an error")
+  }
+
+  // run without protocol
+  err = FetchJson("GET", ts.URL[7:], nil, &res)
+  if err != nil {
+    t.Errorf("Some error occured while sending: %v", err)
+  }
+
+  err = FetchJson("GET", "https://" + ts.URL[7:], nil, &res)
+  if err == nil {
+    t.Errorf("HTTPS should fail since we do not have ssl enabled")
+  }
+
   if res.A != "a" || res.B != "b" {
     t.Errorf("Expected to be a and b, got %s and %s", res.A, res.B)
   }
@@ -99,12 +116,64 @@ func TestFetchXml(t *testing.T) {
   defer ts.Close()
 
   var res Test
-  err := FetchXml("GET", ts.URL, nil, &res)
+  err := FetchXml("GET", ts.URL, nil, nil)
+  if err == nil {
+    t.Errorf("Web request without result struct should throw an error")
+  }
+
+  err = FetchXml("GET", ts.URL, nil, &res)
   if err != nil {
     t.Errorf("Some error occured while sending: %v", err)
   }
 
+  // run without protocol
+  err = FetchXml("GET", ts.URL[7:], nil, &res)
+  if err != nil {
+    t.Errorf("Some error occured while sending: %v", err)
+  }
+
+  err = FetchXml("GET", "https://" + ts.URL[7:], nil, &res)
+  if err == nil {
+    t.Errorf("HTTPS should fail since we do not have ssl enabled")
+  }
+
   if res.A != "a" || res.B != "b" {
     t.Errorf("Expected to be a and b, got %s and %s", res.A, res.B)
+  }
+}
+
+func TestFetchHtml(t *testing.T) {
+  expectedData := `<AB><A>a</A><B>b</B></AB>`
+  ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintln(w, expectedData)
+  }))
+  defer ts.Close()
+
+  resp, err := FetchHtml("GET", ts.URL, nil)
+  if err != nil {
+    t.Errorf("Some error occured while sending: %v", err)
+  }
+  defer resp.Body.Close()
+
+  if resp.StatusCode != http.StatusOK {
+    t.Errorf("Status code is %d, expected %d", resp.StatusCode, http.StatusOK)
+  }
+
+  dataArr, err := ioutil.ReadAll(resp.Body)
+  if err != nil {
+    t.Errorf("Some error occured while sending: %v", err)
+  }
+
+  data := string(dataArr)
+  data = data[:len(data)-1] // trim newline
+  if data != expectedData {
+    t.Errorf("Body is '%s', expected '%s'", data, expectedData)
+  }
+
+  // run without protocol
+  _, err = FetchHtml("GET", ts.URL[7:], nil)
+  if err != nil {
+    t.Errorf("Some error occured while sending: %v", err)
   }
 }

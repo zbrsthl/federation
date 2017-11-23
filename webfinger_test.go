@@ -17,11 +17,26 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "testing"
+import (
+  "testing"
+  "net/http"
+  "net/http/httptest"
+  "fmt"
+)
 
 func TestWebFinger(t *testing.T) {
+  tmplBody := `{"subject": "acct:podmin@joindiaspora.com","aliases":[],"links":[`
+  body := tmplBody + `{"rel":"http://microformats.org/profile/hcard"}]}`
+  failBody := tmplBody + `]}`
+
+  ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintln(w, body)
+  }))
+  defer ts.Close()
+
   finger := WebFinger{
-    Host: "joindiaspora.com",
+    Host: ts.URL[7:], // without protocol
     Handle: "podmin@joindiaspora.com",
   }
   err := finger.Discovery()
@@ -29,13 +44,21 @@ func TestWebFinger(t *testing.T) {
     t.Errorf("Some error occured while discovering: %v", err)
   }
 
-  for _, link := range finger.Xrd.Links {
-    if link.Rel == WebFingerHcard {
-      if link.Href != TEST_HCARD_LINK {
-        t.Errorf("Expected to be %s, got %s", TEST_HCARD_LINK, link.Href)
-      }
-      return
-    }
+  ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintln(w, failBody)
+  }))
+  defer ts.Close()
+
+  finger.Host = ts.URL[7:]
+  err = finger.Discovery()
+  if err == nil {
+    t.Errorf("Webfinger discovery should throw an error on invalid links")
   }
-  t.Errorf("Expected hcard link, got nothing")
+
+  finger.Host = ""
+  err = finger.Discovery()
+  if err == nil {
+    t.Errorf("Webfinger discovery should throw an error on empty host")
+  }
 }
