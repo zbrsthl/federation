@@ -29,6 +29,7 @@ type WebFinger struct {
   Xrd WebfingerXml
 }
 
+// TODO XML webfinger is deprecated
 type WebfingerXml struct {
   XMLName xml.Name `xml:"XRD"`
   Xmlns string `xml:"xmlns,attr"`
@@ -43,6 +44,19 @@ type WebfingerXmlLink struct {
   Type string `xml:"type,attr"`
   Template string `xml:"template,attr,omitempty"`
   Href string `xml:"href,attr,omitempty"`
+}
+
+type WebfingerJson struct {
+  Subject string `json:"subject"`
+  Aliases []string `json:"aliases"`
+  Links []WebfingerJsonLink `json:"links"`
+}
+
+type WebfingerJsonLink struct {
+  Rel string `json:"rel"`
+  Type string `json:"type,omitempty"`
+  Href string `json:"href,omitempty"`
+  Template string `json:"template,omitempty"`
 }
 
 func (w *WebFinger) Discovery() error {
