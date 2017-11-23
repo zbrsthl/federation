@@ -69,7 +69,11 @@ func push(host, endpoint, proto, contentType string, body io.Reader) error {
 }
 
 func FetchJson(method, url string, body io.Reader, result interface{}) error {
-  req, err := http.NewRequest(method, url, body)
+  var proto string
+  if !strings.HasPrefix(url, "http") {
+    proto = "https://"
+  }
+  req, err := http.NewRequest(method, proto + url, body)
   if err != nil {
     return err
   }
@@ -80,6 +84,9 @@ func FetchJson(method, url string, body io.Reader, result interface{}) error {
   }
   resp, err := client.Do(req)
   if err != nil {
+    if !strings.HasPrefix(url, "http") {
+      return FetchJson(method, "http://" + url, body, result)
+    }
     return err
   }
 

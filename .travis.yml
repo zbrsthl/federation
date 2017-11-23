@@ -2,13 +2,9 @@ language: go
 sudo: false
 go:
   - 1.8.x
-
-before_install:
+install:
   - go get -t -v ./...
-
-script: |
-  go test -v -race -coverprofile=p.out -covermode=atomic
-  [ -f p.out ] && cat p.out >> coverage.txt || echo "" > coverage.txt
-
+script:
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic
 after_success:
   - bash <(curl -s https://codecov.io/bash)

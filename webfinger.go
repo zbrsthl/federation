@@ -19,17 +19,19 @@ package federation
 
 import (
   "encoding/xml"
-  "strings"
+  "fmt"
   "errors"
 )
 
 type WebFinger struct {
   Host string
   Handle string
-  Xrd WebfingerXml
+  Json WebfingerJson
 }
 
-// TODO XML webfinger is deprecated
+// TODO XML webfinger is deprecated but
+// still used in host-meta which is required
+// for a successful pod-active check
 type WebfingerXml struct {
   XMLName xml.Name `xml:"XRD"`
   Xmlns string `xml:"xmlns,attr"`
@@ -60,24 +62,14 @@ type WebfingerJsonLink struct {
 }
 
 func (w *WebFinger) Discovery() error {
-  err := FetchXml("GET", w.Host + "/.well-known/host-meta", nil, &w.Xrd)
+  url := fmt.Sprintf("%s/.well-known/webfinger?resource=acct:%s", w.Host, w.Handle)
+  err := FetchJson("GET", url, nil, &w.Json)
   if err != nil {
     return err
   }
 
-  if len(w.Xrd.Links) < 1 {
-    return errors.New("XRD Link missing")
+  if len(w.Json.Links) < 1 {
+    return errors.New("Webfinger Links missing")
   }
-
-  for _, link := range w.Xrd.Links {
-    if link.Rel == "lrdd" && link.Template != "" {
-      err = FetchXml("GET", strings.Replace(
-        link.Template, "{uri}", "acct:" + w.Handle, 1), nil, &w.Xrd)
-      if err != nil {
-        return err
-      }
-      return nil
-    }
-  }
-  return errors.New("No lrdd rel found in webfinger document!")
+  return nil
 }
