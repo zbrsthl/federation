@@ -32,8 +32,7 @@ const (
 )
 
 var (
-  logger Log
-  defaultLogger Logger
+  logger Logger
   defaultPrefix string
 )
 
@@ -49,29 +48,29 @@ func init() {
   }
 
   defaultPrefix = fmt.Sprintf("%s:%d %s ", file, line, f.Name())
-  defaultLogger = log.New(os.Stdout, defaultPrefix, log.Lshortfile)
+  logger = Logger{log.New(os.Stdout, defaultPrefix, log.Lshortfile)}
 }
 
-type Logger interface {
+type LogWriter interface {
   Println(v... interface{})
 }
 
-type Log struct{
-  Logger
+type Logger struct{
+  LogWriter
 }
 
-func SetLogger(logger Logger) {
-  defaultLogger = logger
+func SetLogger(writer LogWriter) {
+  logger = Logger{writer}
 }
 
-func (l Log) Info(values... interface{}) {
-  defaultLogger.Println(values...)
+func (l Logger) Info(values... interface{}) {
+  l.Println(values...)
 }
 
-func (l Log) Error(values... interface{}) {
+func (l Logger) Error(values... interface{}) {
   l.Info(LOG_C_RED, values, LOG_C_RESET)
 }
 
-func (l Log) Warn(values... interface{}) {
+func (l Logger) Warn(values... interface{}) {
   l.Info(LOG_C_YELLOW, values, LOG_C_RESET)
 }
