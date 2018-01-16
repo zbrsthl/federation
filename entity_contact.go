@@ -17,7 +17,10 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+import "encoding/xml"
+
 type EntityContact struct {
+  XMLName xml.Name `xml:"contact"`
   Author string `xml:"author"`
   Recipient string `xml:"recipient"`
   Following bool `xml:"following"`
