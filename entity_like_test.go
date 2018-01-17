@@ -23,7 +23,7 @@ import "testing"
 func TestLikeSignatureOrder(t *testing.T) {
   var like EntityLike
 
-  expected := "positive guid parent_guid target_type author"
+  expected := "positive guid parent_guid parent_type author"
   if expected != like.SignatureOrder() {
     t.Errorf("Expected to be %s, got %s", expected, like.SignatureOrder())
   }
@@ -34,7 +34,7 @@ func TestLikeAppendSignature(t *testing.T) {
     Positive: true,
     Guid: "1234",
     ParentGuid: "4321",
-    TargetType: "Post",
+    ParentType: "Post",
     Author: "author@localhost",
   }
 
@@ -42,12 +42,7 @@ func TestLikeAppendSignature(t *testing.T) {
     t.Errorf("Expected to be empty, got %s", like.AuthorSignature)
   }
 
-  if like.ParentAuthorSignature != "" {
-    t.Errorf("Expected to be empty, got %s", like.AuthorSignature)
-  }
-
-  err := like.AppendSignature(TEST_PRIV_KEY,
-    like.SignatureOrder(), AuthorSignatureType)
+  err := like.AppendSignature(TEST_PRIV_KEY, like.SignatureOrder())
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
@@ -56,13 +51,8 @@ func TestLikeAppendSignature(t *testing.T) {
     t.Errorf("Expected signature, was empty")
   }
 
-  err = like.AppendSignature(TEST_PRIV_KEY,
-    like.SignatureOrder(), ParentAuthorSignatureType)
+  err = like.AppendSignature(TEST_PRIV_KEY, like.SignatureOrder())
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
-  }
-
-  if like.ParentAuthorSignature == "" {
-    t.Errorf("Expected signature, was empty")
   }
 }

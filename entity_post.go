@@ -17,32 +17,36 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "time"
-  "encoding/xml"
-)
+import "encoding/xml"
 
 type EntityStatusMessage struct {
   XMLName xml.Name `xml:"status_message"`
   Author string `xml:"author"`
   Guid string `xml:"guid"`
-  CreatedAt time.Time `xml:"created_at"`
+  CreatedAt Time `xml:"created_at"`
   ProviderName string `xml:"provider_display_name"`
   Text string `xml:"text,omitempty"`
   Photo *EntityPhotos `xml:"photo,omitempty"`
   Location *EntityLocation `xml:"location,omitempty"`
   Poll *EntityPoll `xml:"poll,omitempty"`
   Public bool `xml:"public"`
-  // on reshare
-  RootHandle string `xml:"root_diaspora_id,omitempty"`
-  RootGuid string `xml:"root_guid,omitempty"`
+  Event *EntityEvent `xml:"event,omitempty"`
+}
+
+type EntityReshare struct {
+  XMLName xml.Name `xml:"reshare"`
+  Author string `xml:"author"`
+  Guid string `xml:"guid"`
+  CreatedAt Time `xml:"created_at"`
+  RootAuthor string `xml:"root_author"`
+  RootGuid string `xml:"root_guid"`
 }
 
 type EntityPhoto struct {
   Guid string `xml:"guid"`
   Author string `xml:"author"`
   Public bool `xml:"public"`
-  CreatedAt time.Time `xml:"created_at"`
+  CreatedAt Time `xml:"created_at"`
   RemotePhotoPath string `xml:"remote_photo_path"`
   RemotePhotoName string `xml:"remote_photo_name"`
   Text string `xml:"text"`
@@ -70,6 +74,14 @@ type EntityPollAnswer struct {
   Answer string `xml:"answer"`
 }
 
-type PollParticipation struct {
-  PollAnswerGuid string `xml:"poll_answer_guid"`
+type EntityEvent struct {
+  Author string `xml:"author"`
+  Guid string `xml:"guid"`
+  Summary string `xml:"summary"`
+  Start Time `xml:"start"`
+  End Time `xml:"end"`
+  AllDay bool `xml:"all_day"`
+  Timezone string `xml:"timezone"`
+  Description string `xml:"description"`
+  Location *EntityLocation `xml:"location,omitempty"`
 }
