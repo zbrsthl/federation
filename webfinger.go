@@ -26,49 +26,43 @@ import (
 type WebFinger struct {
   Host string
   Handle string
-  Json WebfingerJson
+  Data WebfingerData
 }
 
-// TODO XML webfinger is deprecated but
-// still used in host-meta which is required
-// for a successful pod-active check
-type WebfingerXml struct {
-  XMLName xml.Name `xml:"XRD"`
-  Xmlns string `xml:"xmlns,attr"`
-  Subject string `xml:"Subject,omitempty"`
-  Alias string `xml:"Alias,omitempty"`
-  Links []WebfingerXmlLink `xml:"Link"`
+type WebfingerData struct {
+  // xml
+  XMLName xml.Name `xml:"XRD" json:"-"`
+  Xmlns string `xml:"xmlns,attr" json:"-"`
+  Alias string `xml:"Alias,omitempty" json:"-"`
+  // json
+  Aliases []string `json:"aliases" xml:"-"`
+
+  Subject string `json:"subject" xml:"Subject,omitempty"`
+  Links []WebfingerDataLink `json:"links" xml:"Link"`
 }
 
-type WebfingerXmlLink struct {
-  XMLName xml.Name `xml:"Link"`
-  Rel string `xml:"rel,attr"`
-  Type string `xml:"type,attr"`
-  Template string `xml:"template,attr,omitempty"`
-  Href string `xml:"href,attr,omitempty"`
-}
+type WebfingerDataLink struct {
+  // xml
+  XMLName xml.Name `xml:"Link" json:"-"`
 
-type WebfingerJson struct {
-  Subject string `json:"subject"`
-  Aliases []string `json:"aliases"`
-  Links []WebfingerJsonLink `json:"links"`
-}
-
-type WebfingerJsonLink struct {
-  Rel string `json:"rel"`
-  Type string `json:"type,omitempty"`
-  Href string `json:"href,omitempty"`
-  Template string `json:"template,omitempty"`
+  Rel string `json:"rel" xml:"rel,attr"`
+  Type string `json:"type,omitempty" xml:"type,attr"`
+  Href string `json:"href,omitempty" xml:"href,attr,omitempty"`
+  Template string `json:"template,omitempty" xml:"template,attr,omitempty"`
 }
 
 func (w *WebFinger) Discovery() error {
   url := fmt.Sprintf("%s/.well-known/webfinger?resource=acct:%s", w.Host, w.Handle)
-  err := FetchJson("GET", url, nil, &w.Json)
+  err := FetchJson("GET", url, nil, &w.Data)
   if err != nil {
-    return err
+    url = fmt.Sprintf("%s/webfinger?q=acct:%s", w.Host, w.Handle)
+    err = FetchXml("GET", url, nil, &w.Data)
+    if err != nil {
+      return err
+    }
   }
 
-  if len(w.Json.Links) < 1 {
+  if len(w.Data.Links) < 1 {
     return errors.New("Webfinger Links missing")
   }
   return nil
