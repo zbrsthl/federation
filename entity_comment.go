@@ -17,38 +17,28 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "encoding/xml"
-  "errors"
-)
+import "encoding/xml"
 
 type EntityComment struct {
   XMLName xml.Name `xml:"comment"`
   Author string `xml:"author"`
-  CreatedAt string `xml:"created_at"`
+  CreatedAt Time `xml:"created_at"`
   Guid string `xml:"guid"`
   ParentGuid string `xml:"parent_guid"`
   Text string `xml:"text"`
   AuthorSignature string `xml:"author_signature"`
-  ParentAuthorSignature string `xml:"parent_author_signature"`
 }
 
 func (e *EntityComment) SignatureOrder() string {
   return "author created_at guid parent_guid text"
 }
 
-func (e *EntityComment) AppendSignature(privKey []byte, order string, typ int) error {
+func (e *EntityComment) AppendSignature(privKey []byte, order string) error {
   signature, err := AuthorSignature(*e, order, privKey)
   if err != nil {
     return err
   }
+  (*e).AuthorSignature = signature
 
-  if AuthorSignatureType == typ {
-    (*e).AuthorSignature = signature
-  } else if ParentAuthorSignatureType == typ {
-    (*e).ParentAuthorSignature = signature
-  } else {
-    return errors.New("Unsupported author signature type!")
-  }
   return nil
 }

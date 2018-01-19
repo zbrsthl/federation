@@ -78,6 +78,8 @@ func AuthorSignature(data interface{}, order string, privKey []byte) (string, er
       if tag == o {
         value := v.Field(i).Interface()
         switch v := value.(type) {
+        case Time:
+          text += v.Format(TIME_FORMAT) + ";"
         case string:
           text += v + ";"
         case bool:

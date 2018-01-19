@@ -20,6 +20,7 @@ package federation
 import (
   "errors"
   "encoding/xml"
+  "time"
 )
 
 type Message struct {
@@ -49,6 +50,26 @@ type Entity struct {
   Data interface{} `xml:"-"`
 }
 
+type Time struct {
+  time.Time
+}
+
+func (t *Time) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+  e.EncodeElement(t.Format(TIME_FORMAT), start)
+  return nil
+}
+
+func (t *Time) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
+  var value string
+  decoder.DecodeElement(&value, &start)
+  parse, err := time.Parse(TIME_FORMAT, value)
+  if err != nil {
+    return err
+  }
+  *t = Time{parse}
+  return nil
+}
+
 func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
   // NOTE since the encoder ignores the interface type
   // (see https://golang.org/src/encoding/xml/read.go#L377)
@@ -69,9 +90,14 @@ func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
     (*e).Type = local
     (*e).Data = content
   case StatusMessage:
-    fallthrough
-  case Reshare:
     content := EntityStatusMessage{}
+    if err := d.DecodeElement(&content, &start); err != nil {
+      return err
+    }
+    (*e).Type = local
+    (*e).Data = content
+  case Reshare:
+    content := EntityReshare{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }

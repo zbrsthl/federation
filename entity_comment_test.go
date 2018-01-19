@@ -17,7 +17,10 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "testing"
+import (
+  "testing"
+  "time"
+)
 
 func TestCommentSignatureOrder(t *testing.T) {
   var comment EntityComment
@@ -31,8 +34,8 @@ func TestCommentSignatureOrder(t *testing.T) {
 func TestCommentAppendSignature(t *testing.T) {
   comment := EntityComment{
     Author: "author@localhost",
-    CreatedAt: "01.01.1970",
     Guid: "1234",
+    CreatedAt: Time{time.Now()},
     ParentGuid: "4321",
     Text: "hello world",
   }
@@ -41,12 +44,7 @@ func TestCommentAppendSignature(t *testing.T) {
     t.Errorf("Expected to be empty, got %s", comment.AuthorSignature)
   }
 
-  if comment.ParentAuthorSignature != "" {
-    t.Errorf("Expected to be empty, got %s", comment.AuthorSignature)
-  }
-
-  err := comment.AppendSignature(TEST_PRIV_KEY,
-    comment.SignatureOrder(), AuthorSignatureType)
+  err := comment.AppendSignature(TEST_PRIV_KEY, comment.SignatureOrder())
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
@@ -55,13 +53,8 @@ func TestCommentAppendSignature(t *testing.T) {
     t.Errorf("Expected signature, was empty")
   }
 
-  err = comment.AppendSignature(TEST_PRIV_KEY,
-    comment.SignatureOrder(), ParentAuthorSignatureType)
+  err = comment.AppendSignature(TEST_PRIV_KEY, comment.SignatureOrder())
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
-  }
-
-  if comment.ParentAuthorSignature == "" {
-    t.Errorf("Expected signature, was empty")
   }
 }

@@ -27,9 +27,9 @@ import (
 )
 
 type Test struct {
-  XMLName xml.Name `xml:"AB";json:"-"`
-  A string `xml:"A";json:"A"`
-  B string `xml:"B";json:"B"`
+  XMLName xml.Name `xml:"AB" json:"-"`
+  A string `xml:"A" json:"A"`
+  B string `xml:"B" json:"B"`
 }
 
 func TestPushToPrivate(t *testing.T) {
