@@ -19,16 +19,6 @@ package federation
 
 import "testing"
 
-
-func TestLikeSignatureOrder(t *testing.T) {
-  var like EntityLike
-
-  expected := "positive guid parent_guid parent_type author"
-  if expected != like.SignatureOrder() {
-    t.Errorf("Expected to be %s, got %s", expected, like.SignatureOrder())
-  }
-}
-
 func TestLikeAppendSignature(t *testing.T) {
   like := EntityLike{
     Positive: true,
@@ -38,21 +28,18 @@ func TestLikeAppendSignature(t *testing.T) {
     Author: "author@localhost",
   }
 
-  if like.AuthorSignature != "" {
-    t.Errorf("Expected to be empty, got %s", like.AuthorSignature)
+  privKey, err := ParseRSAPrivateKey(TEST_PRIV_KEY)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
   }
 
-  err := like.AppendSignature(TEST_PRIV_KEY, like.SignatureOrder())
+  var signature Signature
+  err = signature.New(like).Sign(privKey, &(like.AuthorSignature))
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
   if like.AuthorSignature == "" {
-    t.Errorf("Expected signature, was empty")
-  }
-
-  err = like.AppendSignature(TEST_PRIV_KEY, like.SignatureOrder())
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
+    t.Errorf("Expected signature, got empty string")
   }
 }

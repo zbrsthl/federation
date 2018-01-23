@@ -20,12 +20,12 @@ package federation
 import (
   "fmt"
   "runtime"
-  "regexp"
   "os"
   "log"
 )
 
 const (
+  LOG_C_TUR = "\033[0;36m"
   LOG_C_RED = "\033[31m"
   LOG_C_YELLOW = "\033[33m"
   LOG_C_RESET = "\033[0m"
@@ -37,18 +37,16 @@ var (
 )
 
 func init() {
-  pc := make([]uintptr, 10)  // at least 1 entry needed
+  pc := make([]uintptr, 1)
   runtime.Callers(3, pc)
   f := runtime.FuncForPC(pc[0])
   file, line := f.FileLine(pc[0])
-  regex, _ := regexp.Compile(`\/([^\/]+?\.go)`)
-  result := regex.FindAllStringSubmatch(file, -1)
-  if len(result) == 1 {
-    file = result[0][1]
-  }
 
   defaultPrefix = fmt.Sprintf("%s:%d %s ", file, line, f.Name())
-  logger = Logger{log.New(os.Stdout, defaultPrefix, log.Lshortfile)}
+  logger = Logger{
+    log.New(os.Stdout, defaultPrefix, log.Lshortfile),
+    LOG_C_TUR,
+  }
 }
 
 type LogWriter interface {
@@ -57,20 +55,28 @@ type LogWriter interface {
 
 type Logger struct{
   LogWriter
+
+  Prefix string
 }
 
 func SetLogger(writer LogWriter) {
-  logger = Logger{writer}
+  logger = Logger{writer, LOG_C_TUR}
 }
 
 func (l Logger) Info(values... interface{}) {
-  l.Println(values...)
+  values = append(values, []interface{}{""})
+  copy(values[1:], values[0:])
+  values[0] = l.Prefix
+  values = append(values, LOG_C_RESET)
+  l.Println(values)
 }
 
 func (l Logger) Error(values... interface{}) {
-  l.Info(LOG_C_RED, values, LOG_C_RESET)
+  l.Prefix = LOG_C_RED
+  l.Info(values)
 }
 
 func (l Logger) Warn(values... interface{}) {
-  l.Info(LOG_C_YELLOW, values, LOG_C_RESET)
+  l.Prefix = LOG_C_YELLOW
+  l.Info(values)
 }

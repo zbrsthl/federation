@@ -17,7 +17,7 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "encoding/xml"
+import "github.com/Zauberstuhl/go-xml"
 
 type EntityLike struct {
   XMLName xml.Name `xml:"like"`
@@ -27,18 +27,21 @@ type EntityLike struct {
   ParentType string `xml:"parent_type"`
   Author string `xml:"author"`
   AuthorSignature string `xml:"author_signature"`
+
+  // store relayable signature order
+  SignatureOrder string `xml:"-"`
 }
 
-func (e *EntityLike) SignatureOrder() string {
-  return "positive guid parent_guid parent_type author"
-}
-
-func (e *EntityLike) AppendSignature(privKey []byte, order string) error {
-  signature, err := AuthorSignature(*e, order, privKey)
-  if err != nil {
-    return err
+func (e EntityLike) SignatureText() []string {
+  positive := "false"
+  if e.Positive {
+    positive = "true"
   }
-  (*e).AuthorSignature = signature
-
-  return nil
+  return []string{
+    positive,
+    e.Guid,
+    e.ParentGuid,
+    e.ParentType,
+    e.Author,
+  }
 }

@@ -19,36 +19,36 @@ package federation
 
 import (
   "testing"
-  "bytes"
   "log"
   "os"
-  "regexp"
+  "strings"
+  "bytes"
 )
 
-type TestLogger struct {
-  Log string
-}
-func (t *TestLogger) Println(v... interface{}) {
-  t.Log = v[0].(string)
-}
-
-func TestSetLogger(t *testing.T) {
+func TestLoggerOutput(t *testing.T) {
   var buf bytes.Buffer
-  var expected = "Hello World"
+  var msg = "Hello World"
 
-  SetLogger(log.New(&buf, defaultPrefix, log.Lshortfile))
-  logger.Info(expected)
+  SetLogger(log.New(&buf, "", log.Lshortfile))
+  logger.Info(msg)
 
-  matched, err := regexp.MatchString(expected + "\n", buf.String())
-  if err != nil || !matched {
-    t.Errorf("Expected to be %s, got %s (%v)", expected, buf.String(), err)
+  expected := LOG_C_TUR + msg + LOG_C_RESET
+  if strings.Contains(expected, buf.String()) {
+    t.Errorf("Expected to contain '%s', got '%s'", expected, buf.String())
   }
 
-  var testLogger TestLogger
-  SetLogger(&testLogger)
-  logger.Info(expected)
-  if expected != testLogger.Log {
-    t.Errorf("Expected to be %s, got %s", expected, testLogger.Log)
+  buf.Reset()
+  logger.Error(msg)
+  expected = LOG_C_RED + msg + LOG_C_RESET
+  if strings.Contains(expected, buf.String()) {
+    t.Errorf("Expected to contain '%s', got '%s'", expected, buf.String())
+  }
+
+  buf.Reset()
+  logger.Warn(expected)
+  expected = LOG_C_YELLOW + msg + LOG_C_RESET
+  if strings.Contains(expected, buf.String()) {
+    t.Errorf("Expected to contain '%s', got '%s'", expected, buf.String())
   }
 
   // reset otherwise it will break test output

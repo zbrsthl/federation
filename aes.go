@@ -120,18 +120,13 @@ func (a Aes) Decrypt() (ciphertext []byte, err error) {
   return ciphertext, nil
 }
 
-func (w AesWrapper) Decrypt(serializedKey []byte) (entityXML []byte, err error) {
+func (w AesWrapper) Decrypt(privKey *rsa.PrivateKey) (entityXML []byte, err error) {
   encryptedAesKey, err := base64.StdEncoding.DecodeString(w.AesKey)
   if err != nil {
     return
   }
 
-  privkey, err := ParseRSAPrivKey(serializedKey)
-  if err != nil {
-    return
-  }
-
-  decryptedAesKey, err := rsa.DecryptPKCS1v15(rand.Reader, privkey, encryptedAesKey)
+  decryptedAesKey, err := rsa.DecryptPKCS1v15(rand.Reader, privKey, encryptedAesKey)
   if err != nil {
     return
   }

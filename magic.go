@@ -19,40 +19,19 @@ package federation
 
 import (
   "encoding/base64"
-  "encoding/xml"
+  "github.com/Zauberstuhl/go-xml"
   "encoding/json"
   "crypto/rsa"
   "crypto/rand"
 )
 
-type MagicEnvelopeMarshal struct {
-  XMLName xml.Name `xml:"me:env"`
-  Me string `xml:"xmlns:me,attr"`
-  Data struct {
-    XMLName xml.Name `xml:"me:data"`
-    Type string `xml:"type,attr"`
-    Data string `xml:",chardata"`
-  }
-  Encoding string `xml:"me:encoding"`
-  Alg string `xml:"me:alg"`
-  Sig struct {
-    XMLName xml.Name `xml:"me:sig"`
-    Sig string `xml:",chardata"`
-    KeyId string `xml:"key_id,attr,omitempty"`
-  }
-}
-
-func MagicEnvelope(privkey, handle string, plainXml []byte) (payload []byte, err error) {
-  logger.Info(
-    "MagicEnvelope with", string(plainXml),
-    "private key length", len(privkey),
-    "for", handle,
-  )
+func MagicEnvelope(privKey *rsa.PrivateKey, handle string, plainXml []byte) (payload []byte, err error) {
+  logger.Info("MagicEnvelope with", string(plainXml), "for", handle)
 
   data := base64.URLEncoding.EncodeToString(plainXml)
   keyId := base64.URLEncoding.EncodeToString([]byte(handle))
 
-  xmlBody := MagicEnvelopeMarshal{}
+  xmlBody := Message{}
   xmlBody.Data.Type = APPLICATION_XML
   xmlBody.Data.Data = data
   xmlBody.Me = XMLNS_ME
@@ -60,13 +39,15 @@ func MagicEnvelope(privkey, handle string, plainXml []byte) (payload []byte, err
   xmlBody.Alg = RSA_SHA256
   xmlBody.Sig.KeyId = keyId
 
-  err = xmlBody.Sign(privkey)
+  var signature Signature
+  err = signature.New(xmlBody).Sign(privKey,
+    &(xmlBody.Sig.Sig))
   if err != nil {
     logger.Warn(err)
     return
   }
 
-  payload, err = xml.Marshal(xmlBody)
+  payload, err = xml.MarshalIndent(xmlBody, "", "  ")
   if err != nil {
     logger.Warn(err)
     return
@@ -76,19 +57,15 @@ func MagicEnvelope(privkey, handle string, plainXml []byte) (payload []byte, err
   return
 }
 
-func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte) (payload []byte, err error) {
-  logger.Info("EncryptedMagicEnvelope with", string(serializedXml),
-    "private key length", len(privkey),
-    "and public key length", len(pubkey),
-    "for", handle,
-  )
+func EncryptedMagicEnvelope(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, handle string, serializedXml []byte) (payload []byte, err error) {
+  logger.Info("EncryptedMagicEnvelope with", string(serializedXml), "for", handle)
 
   var aesKeySet Aes
   var aesWrapper AesWrapper
   data := base64.URLEncoding.EncodeToString(serializedXml)
   keyId := base64.URLEncoding.EncodeToString([]byte(handle))
 
-  envelope := MagicEnvelopeMarshal{
+  envelope := Message{
     Me: XMLNS_ME,
     Encoding: BASE64_URL,
     Alg: RSA_SHA256,
@@ -97,7 +74,9 @@ func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte
   envelope.Data.Data = data
   envelope.Sig.KeyId = keyId
 
-  err = envelope.Sign(privkey)
+  var signature Signature
+  err = signature.New(envelope).Sign(privKey,
+    &(envelope.Sig.Sig))
   if err != nil {
     logger.Warn(err)
     return
@@ -111,7 +90,7 @@ func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte
   }
 
   // payload with aes encryption
-  payload, err = xml.Marshal(envelope)
+  payload, err = xml.MarshalIndent(envelope, "", "  ")
   if err != nil {
     logger.Warn(err)
     return
@@ -130,13 +109,7 @@ func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte
   aesWrapper.MagicEnvelope = aesKeySet.Data
 
   // aes with rsa encryption
-  aesKeySetXml, err := json.Marshal(aesKeySet)
-  if err != nil {
-    logger.Warn(err)
-    return
-  }
-
-  pubKey, err := ParseRSAPubKey([]byte(pubkey))
+  aesKeySetXml, err := json.MarshalIndent(aesKeySet, "", "  ")
   if err != nil {
     logger.Warn(err)
     return
@@ -151,7 +124,7 @@ func EncryptedMagicEnvelope(privkey, pubkey, handle string, serializedXml []byte
   }
   aesWrapper.AesKey = base64.StdEncoding.EncodeToString(aesKey)
 
-  payload, err = json.Marshal(aesWrapper)
+  payload, err = json.MarshalIndent(aesWrapper, "", "  ")
   if err != nil {
     logger.Warn(err)
     return

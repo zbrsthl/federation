@@ -18,7 +18,7 @@ package federation
 //
 
 import (
-  "encoding/xml"
+  "github.com/Zauberstuhl/go-xml"
   "fmt"
   "errors"
 )

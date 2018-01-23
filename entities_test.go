@@ -19,7 +19,7 @@ package federation
 
 import (
   "testing"
-  "encoding/xml"
+  "github.com/Zauberstuhl/go-xml"
 )
 
 func TestEntitiesUnmarshalXML(t *testing.T) {
