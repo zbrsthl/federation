@@ -17,7 +17,7 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "encoding/xml"
+import "github.com/Zauberstuhl/go-xml"
 
 type EntityContact struct {
   XMLName xml.Name `xml:"contact"`

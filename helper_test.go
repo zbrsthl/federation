@@ -18,8 +18,8 @@ package federation
 //
 
 import (
+  "crypto/rsa"
   "testing"
-  "bytes"
 )
 
 var TEST_AUTHOR = `diaspora_2nd@localhost:3001`
@@ -69,38 +69,55 @@ zQKne2ejiu9e5cDD5WyVusjeRstj/+9bDlOrQ8X4eh6vmjvd+98B/ZWFCCEkTH5m
 DX3H15lu+GelrDpYLThXjnkCAwEAAQ==
 -----END PUBLIC KEY-----`)
 
-func TestFetchEntityOrder(t *testing.T) {
-  var order = "author guid"
+func TestParseRSAPublicKey(t *testing.T) {
+  var (
+    err error
+    pub interface{}
+  )
 
-  extractedOrder := FetchEntityOrder(
-    `<author></author><author_signature>` +
-    `</author_signature><guid></guid>` +
-    `<parent_author_signature></parent_author_signature>`)
-  if extractedOrder != order {
-    t.Errorf("Expected to be %s, got %s", order, extractedOrder)
+  pub, err = ParseRSAPublicKey(TEST_PUB_KEY)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
   }
 
-  extractedOrder = FetchEntityOrder(
-    `<author_signature></author_signature>` +
-    `<parent_author_signature></parent_author_signature>`)
-  if extractedOrder != "" {
-    t.Errorf("Expected to be empty, got %s", extractedOrder)
+  if data, ok := pub.(*rsa.PublicKey); !ok {
+    t.Errorf("Expected to be '*rsa.PublicKey', got %v", data)
+  }
+
+  _, err = ParseRSAPublicKey([]byte(""))
+  if err == nil {
+    t.Errorf("Expected an error, got nil")
+  }
+
+  _, err = ParseRSAPublicKey(TEST_PRIV_KEY)
+  if err == nil {
+    t.Errorf("Expected an error, got nil")
   }
 }
 
-func TestSortByEntityOrder(t *testing.T) {
-  entity := []byte(`<author>test</author><guid>1234</guid>`)
-  expectedEntity := []byte(`<guid>1234</guid><author>test</author>`)
+func TestParseRSAPrivateKey(t *testing.T) {
+  var (
+    err error
+    priv interface{}
+  )
 
-  sorted := SortByEntityOrder("guid author", entity)
-
-  if bytes.Compare(sorted, expectedEntity) != 0 {
-    t.Errorf("Expected to be %s, got %s", expectedEntity, sorted)
+  priv, err = ParseRSAPrivateKey(TEST_PRIV_KEY)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
   }
 
-  sorted = SortByEntityOrder("", entity)
-  if bytes.Compare(sorted, entity) != 0 {
-    t.Errorf("Expected to be %s, got %s", entity, sorted)
+  if data, ok := priv.(*rsa.PrivateKey); !ok {
+    t.Errorf("Expected to be '*rsa.PrivateKey', got %v", data)
+  }
+
+  _, err = ParseRSAPrivateKey([]byte(""))
+  if err == nil {
+    t.Errorf("Expected an error, got nil")
+  }
+
+  _, err = ParseRSAPrivateKey(TEST_PUB_KEY)
+  if err == nil {
+    t.Errorf("Expected an error, got nil")
   }
 }
 

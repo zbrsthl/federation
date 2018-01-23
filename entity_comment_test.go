@@ -22,15 +22,6 @@ import (
   "time"
 )
 
-func TestCommentSignatureOrder(t *testing.T) {
-  var comment EntityComment
-
-  expected := "author created_at guid parent_guid text"
-  if expected != comment.SignatureOrder() {
-    t.Errorf("Expected to be %s, got %s", expected, comment.SignatureOrder())
-  }
-}
-
 func TestCommentAppendSignature(t *testing.T) {
   comment := EntityComment{
     Author: "author@localhost",
@@ -44,17 +35,18 @@ func TestCommentAppendSignature(t *testing.T) {
     t.Errorf("Expected to be empty, got %s", comment.AuthorSignature)
   }
 
-  err := comment.AppendSignature(TEST_PRIV_KEY, comment.SignatureOrder())
+  privKey, err := ParseRSAPrivateKey(TEST_PRIV_KEY)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
+  }
+
+  var signature Signature
+  err = signature.New(comment).Sign(privKey, &(comment.AuthorSignature))
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
   if comment.AuthorSignature == "" {
-    t.Errorf("Expected signature, was empty")
-  }
-
-  err = comment.AppendSignature(TEST_PRIV_KEY, comment.SignatureOrder())
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
+    t.Errorf("Expected signature, got empty string")
   }
 }

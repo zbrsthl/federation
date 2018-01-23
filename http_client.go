@@ -21,7 +21,7 @@ import (
   "time"
   "net/http"
   "encoding/json"
-  "encoding/xml"
+  "github.com/Zauberstuhl/go-xml"
   "errors"
   "io"
   "strings"

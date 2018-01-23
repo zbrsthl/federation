@@ -17,7 +17,7 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "encoding/xml"
+import "github.com/Zauberstuhl/go-xml"
 
 type EntityComment struct {
   XMLName xml.Name `xml:"comment"`
@@ -29,16 +29,12 @@ type EntityComment struct {
   AuthorSignature string `xml:"author_signature"`
 }
 
-func (e *EntityComment) SignatureOrder() string {
-  return "author created_at guid parent_guid text"
-}
-
-func (e *EntityComment) AppendSignature(privKey []byte, order string) error {
-  signature, err := AuthorSignature(*e, order, privKey)
-  if err != nil {
-    return err
+func (e EntityComment) SignatureText() []string {
+  return []string{
+    e.Author,
+    e.CreatedAt.Format(TIME_FORMAT),
+    e.Guid,
+    e.ParentGuid,
+    e.Text,
   }
-  (*e).AuthorSignature = signature
-
-  return nil
 }

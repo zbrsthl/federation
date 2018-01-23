@@ -19,26 +19,26 @@ package federation
 
 import (
   "errors"
-  "encoding/xml"
+  "github.com/Zauberstuhl/go-xml"
+  "encoding/base64"
   "time"
 )
 
 type Message struct {
-  XMLName xml.Name `xml:"env"`
+  XMLName xml.Name `xml:"me:env"`
   Me string `xml:"me,attr"`
   Data struct {
-    XMLName xml.Name `xml:"data"`
+    XMLName xml.Name `xml:"me:data"`
     Type string `xml:"type,attr"`
     Data string `xml:",chardata"`
   }
-  Encoding string `xml:"encoding"`
-  Alg string `xml:"alg"`
+  Encoding string `xml:"me:encoding"`
+  Alg string `xml:"me:alg"`
   Sig struct {
-    XMLName xml.Name `xml:"sig"`
+    XMLName xml.Name `xml:"me:sig"`
     Sig string `xml:",chardata"`
     KeyId string `xml:"key_id,attr,omitempty"`
   }
-  Entity Entity `xml:"-"`
 }
 
 type Entity struct {
@@ -52,6 +52,15 @@ type Entity struct {
 
 type Time struct {
   time.Time
+}
+
+func (m Message) SignatureText() []string {
+  return []string{
+    m.Data.Data,
+    base64.StdEncoding.EncodeToString([]byte(m.Data.Type)),
+    base64.StdEncoding.EncodeToString([]byte(m.Encoding)),
+    base64.StdEncoding.EncodeToString([]byte(m.Alg)),
+  }
 }
 
 func (t *Time) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

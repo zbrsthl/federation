@@ -22,7 +22,7 @@ import (
   "net/http"
   "net/http/httptest"
   "testing"
-  "encoding/xml"
+  "github.com/Zauberstuhl/go-xml"
   "io/ioutil"
 )
 

@@ -18,12 +18,14 @@ package federation
 //
 
 import (
-  "encoding/xml"
+  "crypto/rsa"
+  "github.com/Zauberstuhl/go-xml"
   "encoding/base64"
   "strings"
 )
 
-func ParseDecryptedRequest(entityXML []byte) (message Message, err error) {
+func ParseDecryptedRequest(entityXML []byte) (entity Entity, err error) {
+  var message Message
   err = xml.Unmarshal(entityXML, &message)
   if err != nil {
     logger.Error(err)
@@ -53,20 +55,22 @@ func ParseDecryptedRequest(entityXML []byte) (message Message, err error) {
     return
   }
 
-  var entity = Entity{
-    SignatureOrder: FetchEntityOrder(string(data)),
+  entity.SignatureOrder, err = FetchEntityOrder(data)
+  if err != nil {
+    logger.Error(err)
+    return
   }
+
   err = xml.Unmarshal(data, &entity)
   if err != nil {
     logger.Error(err)
     return
   }
-  message.Entity = entity
   return
 }
 
-func ParseEncryptedRequest(wrapper AesWrapper, privkey []byte) (message Message, err error) {
-  entityXML, err := wrapper.Decrypt(privkey)
+func ParseEncryptedRequest(wrapper AesWrapper, privKey *rsa.PrivateKey) (entity Entity, err error) {
+  entityXML, err := wrapper.Decrypt(privKey)
   if err != nil {
     logger.Error(err)
     return
