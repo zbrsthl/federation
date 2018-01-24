@@ -29,10 +29,17 @@ type EntityComment struct {
   AuthorSignature string `xml:"author_signature"`
 }
 
-func (e EntityComment) SignatureText() []string {
+func (e EntityComment) Signature() string {
+  return e.AuthorSignature
+}
+
+func (e EntityComment) SignatureText(order string) (signatureOrder []string) {
+  if order != "" {
+    return ExractSignatureText(order, e)
+  }
   return []string{
     e.Author,
-    e.CreatedAt.Format(TIME_FORMAT),
+    e.CreatedAt.String(),
     e.Guid,
     e.ParentGuid,
     e.Text,

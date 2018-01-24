@@ -26,10 +26,10 @@ func TestCommentAppendSignature(t *testing.T) {
   comment := EntityComment{
     Author: "author@localhost",
     Guid: "1234",
-    CreatedAt: Time{time.Now()},
     ParentGuid: "4321",
     Text: "hello world",
   }
+  comment.CreatedAt.New(time.Now())
 
   if comment.AuthorSignature != "" {
     t.Errorf("Expected to be empty, got %s", comment.AuthorSignature)

@@ -64,11 +64,7 @@ func SetLogger(writer LogWriter) {
 }
 
 func (l Logger) Info(values... interface{}) {
-  values = append(values, []interface{}{""})
-  copy(values[1:], values[0:])
-  values[0] = l.Prefix
-  values = append(values, LOG_C_RESET)
-  l.Println(values)
+  l.Println(l.Prefix, values, LOG_C_RESET)
 }
 
 func (l Logger) Error(values... interface{}) {

@@ -24,8 +24,7 @@ import (
   "strings"
 )
 
-func ParseDecryptedRequest(entityXML []byte) (entity Entity, err error) {
-  var message Message
+func ParseDecryptedRequest(entityXML []byte) (message Message, entity Entity, err error) {
   err = xml.Unmarshal(entityXML, &message)
   if err != nil {
     logger.Error(err)
@@ -48,18 +47,21 @@ func ParseDecryptedRequest(entityXML []byte) (entity Entity, err error) {
     return
   }
   message.Sig.KeyId = string(keyId)
+  logger.Info("Entity sender", message.Sig.KeyId)
 
   data, err := base64.URLEncoding.DecodeString(message.Data.Data)
   if err != nil {
     logger.Error(err)
     return
   }
+  logger.Info("Entity raw", string(data))
 
   entity.SignatureOrder, err = FetchEntityOrder(data)
   if err != nil {
     logger.Error(err)
     return
   }
+  logger.Info("Entity order", entity.SignatureOrder)
 
   err = xml.Unmarshal(data, &entity)
   if err != nil {
@@ -69,7 +71,7 @@ func ParseDecryptedRequest(entityXML []byte) (entity Entity, err error) {
   return
 }
 
-func ParseEncryptedRequest(wrapper AesWrapper, privKey *rsa.PrivateKey) (entity Entity, err error) {
+func ParseEncryptedRequest(wrapper AesWrapper, privKey *rsa.PrivateKey) (message Message, entity Entity, err error) {
   entityXML, err := wrapper.Decrypt(privKey)
   if err != nil {
     logger.Error(err)
