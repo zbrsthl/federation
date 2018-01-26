@@ -19,15 +19,23 @@ package federation
 
 import "testing"
 
-func TestLikeAppendSignature(t *testing.T) {
-  like := EntityLike{
-    Positive: true,
-    Guid: "1234",
-    ParentGuid: "4321",
-    ParentType: "Post",
-    Author: "author@localhost",
-  }
+var like = EntityLike{
+  Positive: true,
+  Guid: "1234",
+  ParentGuid: "4321",
+  ParentType: "Post",
+  Author: "author@localhost",
+}
 
+func TestLikeSignature(t *testing.T) {
+  like.AuthorSignature = "1234"
+  if like.Signature() != like.AuthorSignature {
+    t.Errorf("Expected to be '%s', got '%s'",
+      like.AuthorSignature, like.Signature())
+  }
+}
+
+func TestLikeAppendSignature(t *testing.T) {
   privKey, err := ParseRSAPrivateKey(TEST_PRIV_KEY)
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)

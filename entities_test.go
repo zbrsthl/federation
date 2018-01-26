@@ -19,106 +19,41 @@ package federation
 
 import (
   "testing"
+  "reflect"
   "github.com/Zauberstuhl/go-xml"
 )
 
 func TestEntitiesUnmarshalXML(t *testing.T) {
   var entity Entity
-
-  var retractionRaw = []byte(`<retraction></retraction>`)
-  var profileRaw = []byte(`<profile></profile>`)
-  var statusMessageRaw = []byte(`<status_message></status_message>`)
-  var reshareRaw = []byte(`<reshare></reshare>`)
-  var commentRaw = []byte(`<comment></comment>`)
-  var likeRaw = []byte(`<like></like>`)
-  var contactRaw = []byte(`<contact></contact>`)
-  var notSupportedRaw = []byte(`<notsupported></notsupported>`)
-
-  err := xml.Unmarshal(retractionRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityRetraction); !ok {
-    t.Errorf("Expected to be 'like', got %v", data)
-  }
-  err = xml.Unmarshal(retractionRaw[:len(retractionRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
+  var tests = []struct{
+    Type string
+    Raw []byte
+  }{
+    {Type: "EntityRetraction", Raw: []byte(`<retraction></retraction>`)},
+    {Type: "EntityProfile", Raw: []byte(`<profile></profile>`)},
+    {Type: "EntityStatusMessage", Raw: []byte(`<status_message></status_message>`)},
+    {Type: "EntityReshare", Raw: []byte(`<reshare></reshare>`)},
+    {Type: "EntityComment", Raw: []byte(`<comment></comment>`)},
+    {Type: "EntityLike", Raw: []byte(`<like></like>`)},
+    {Type: "EntityContact", Raw: []byte(`<contact></contact>`)},
   }
 
-  err = xml.Unmarshal(profileRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityProfile); !ok {
-    t.Errorf("Expected to be 'profile', got %v", data)
-  }
-  err = xml.Unmarshal(profileRaw[:len(profileRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
-  }
-
-  err = xml.Unmarshal(statusMessageRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityStatusMessage); !ok {
-    t.Errorf("Expected to be 'status_message', got %v", data)
-  }
-  err = xml.Unmarshal(statusMessageRaw[:len(statusMessageRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
+  for i, test := range tests {
+    err := xml.Unmarshal(test.Raw, &entity)
+    if err != nil {
+      t.Errorf("#%d: Some error occured while parsing: %v", i, err)
+    }
+    name := reflect.TypeOf(entity.Data).Name()
+    if test.Type != name {
+      t.Errorf("#%d: Expected to be '%s', got '%s'", i, test.Type, name)
+    }
+    err = xml.Unmarshal(test.Raw[:len(test.Raw)-1], &entity)
+    if err == nil {
+      t.Errorf("#%d: Expected an error, got nil", i)
+    }
   }
 
-  err = xml.Unmarshal(reshareRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityReshare); !ok {
-    t.Errorf("Expected to be 'reshare', got %v", data)
-  }
-  err = xml.Unmarshal(reshareRaw[:len(reshareRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
-  }
-
-  err = xml.Unmarshal(commentRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityComment); !ok {
-    t.Errorf("Expected to be 'comment', got %v", data)
-  }
-  err = xml.Unmarshal(commentRaw[:len(commentRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
-  }
-
-  err = xml.Unmarshal(likeRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityLike); !ok {
-    t.Errorf("Expected to be 'like', got %v", data)
-  }
-  err = xml.Unmarshal(likeRaw[:len(likeRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
-  }
-
-  err = xml.Unmarshal(contactRaw, &entity)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-  if data, ok := entity.Data.(EntityContact); !ok {
-    t.Errorf("Expected to be 'contact', got %v", data)
-  }
-  err = xml.Unmarshal(contactRaw[:len(contactRaw)-1], &entity)
-  if err == nil {
-    t.Errorf("Expected an error, got nil")
-  }
-
-  err = xml.Unmarshal(notSupportedRaw, &entity)
+  err := xml.Unmarshal([]byte(`<not-supported></not-supported>`), &entity)
   if err == nil {
     t.Errorf("Expected an error, got nil")
   }
@@ -148,6 +83,15 @@ func TestEntitiesTimeMarshalAndUnmarshal(t *testing.T) {
   }
   if string(result) != rawXml {
     t.Errorf("Expected to be '%s', got '%s'", result, rawXml)
+  }
+
+  timeTime, err := origTime.CreatedAt.Time()
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
+  }
+  if timeTime.Format(TIME_FORMAT) != time {
+    t.Errorf("Expected to be '%s', got '%s'",
+      time, timeTime.Format(TIME_FORMAT))
   }
 
   // XXX the application server uses time.Now if this happens

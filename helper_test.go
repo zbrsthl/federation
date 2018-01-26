@@ -20,6 +20,7 @@ package federation
 import (
   "crypto/rsa"
   "testing"
+  "strings"
 )
 
 var TEST_AUTHOR = `diaspora_2nd@localhost:3001`
@@ -147,5 +148,41 @@ func TestParseStringHelper(t *testing.T) {
   parts, err = parseStringHelper("abc", `^\w{2}`, 1)
   if err == nil {
     t.Errorf("Expected an error, got nil")
+  }
+}
+
+func TestExractSignatureText(t *testing.T) {
+  var entity = EntityComment {
+    Author: "1",
+    CreatedAt: "2",
+    Guid: "3",
+    ParentGuid: "4",
+    Text: "5",
+    AuthorSignature: "6",
+  }
+
+  var tests = []struct {
+    Order string
+    Expected string
+  }{
+    {
+      Order: "author parent_guid",
+      Expected: "1;4",
+    },
+    {
+      Order: "author parent_guid text guid",
+      Expected: "1;4;5;3",
+    },
+    {
+      Order: "",
+      Expected: "",
+    },
+  }
+
+  for i, test := range tests {
+    result := ExractSignatureText(test.Order, entity)
+    if strings.Join(result, ";") != test.Expected {
+      t.Errorf("#%d: Expected to be '%s', got '%s'", i, test.Expected, strings.Join(result, ";"))
+    }
   }
 }
