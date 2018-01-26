@@ -23,7 +23,46 @@ import (
   "crypto/x509"
   "encoding/pem"
   "errors"
+  "reflect"
+  "strings"
 )
+
+func ExractSignatureText(order string, entity interface{}) (signatureOrder []string) {
+  orderArr := strings.Split(order, " ")
+
+  typeOf := reflect.TypeOf(entity)
+  var mappingFields = map[string]int{}
+  for i := 0; i < typeOf.NumField(); i++ {
+    field := typeOf.Field(i)
+    xmlTag := field.Tag.Get("xml")
+    if xmlTag != "" {
+      xmlOpts := strings.Split(xmlTag, ",")
+      if len(xmlOpts) > 0 && strings.Contains(order, xmlOpts[0]) {
+        mappingFields[xmlOpts[0]] = i
+      }
+    }
+  }
+
+  valueOf := reflect.ValueOf(entity)
+  for _, orderElem := range orderArr {
+    if i, ok := mappingFields[orderElem]; ok {
+      if value, ok := valueOf.Field(i).Interface().(Time); ok {
+        signatureOrder = append(signatureOrder, string(value))
+      }
+      if value, ok := valueOf.Field(i).Interface().(string); ok {
+        signatureOrder = append(signatureOrder, value)
+      }
+      if value, ok := valueOf.Field(i).Interface().(bool); ok {
+        valueBool := "false"
+        if value {
+          valueBool = "true"
+        }
+        signatureOrder = append(signatureOrder, valueBool)
+      }
+    }
+  }
+  return
+}
 
 func ParseRSAPublicKey(decodedKey []byte) (*rsa.PublicKey, error) {
   block, _ := pem.Decode(decodedKey)

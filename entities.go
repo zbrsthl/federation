@@ -50,11 +50,13 @@ type Entity struct {
   Data interface{} `xml:"-"`
 }
 
-type Time struct {
-  time.Time
+type Time string
+
+func (m Message) Signature() string {
+  return m.Sig.Sig
 }
 
-func (m Message) SignatureText() []string {
+func (m Message) SignatureText(order string) []string {
   return []string{
     m.Data.Data,
     base64.StdEncoding.EncodeToString([]byte(m.Data.Type)),
@@ -63,20 +65,17 @@ func (m Message) SignatureText() []string {
   }
 }
 
-func (t *Time) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-  e.EncodeElement(t.Format(TIME_FORMAT), start)
-  return nil
+func (t *Time) New(newTime time.Time) *Time {
+  *t = Time(newTime.UTC().Format(TIME_FORMAT))
+  return t
 }
 
-func (t *Time) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
-  var value string
-  decoder.DecodeElement(&value, &start)
-  parse, err := time.Parse(TIME_FORMAT, value)
-  if err != nil {
-    return err
-  }
-  *t = Time{parse}
-  return nil
+func (t Time) Time() (time.Time, error) {
+  return time.Parse(TIME_FORMAT, string(t))
+}
+
+func (t Time) String() string {
+  return string(t)
 }
 
 func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {

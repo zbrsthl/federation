@@ -19,43 +19,34 @@ package federation
 
 import (
   "testing"
-  "time"
 )
 
-var comment = EntityComment{
-  Author: "author@localhost",
-  Guid: "1234",
-  ParentGuid: "4321",
-  AuthorSignature: "1234",
-  Text: "hello world",
-}
-
-func TestCommentSignature(t *testing.T) {
-  if comment.Signature() != comment.AuthorSignature {
-    t.Errorf("Expected to be '%s', got '%s'",
-      comment.AuthorSignature, comment.Signature())
-  }
-}
-
-func TestCommentAppendSignature(t *testing.T) {
-  comment.CreatedAt.New(time.Now())
-
-  if comment.AuthorSignature != "1234" {
-    t.Errorf("Expected to be empty, got %s", comment.AuthorSignature)
-  }
-
-  privKey, err := ParseRSAPrivateKey(TEST_PRIV_KEY)
-  if err != nil {
-    t.Errorf("Some error occured while parsing: %v", err)
-  }
-
+func TestSignatureInterface(t *testing.T) {
   var signature Signature
-  err = signature.New(comment).Sign(privKey, &(comment.AuthorSignature))
+  var sig string
+
+  priv, err := ParseRSAPrivateKey(TEST_PRIV_KEY)
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
-  if comment.AuthorSignature == "" {
-    t.Errorf("Expected signature, got empty string")
+  err = signature.New(EntityLike{}).Sign(priv, &sig)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
+  }
+
+  if !signature.New(EntityLike{AuthorSignature: sig}).Verify(
+      "positive guid parent_guid parent_type author", &priv.PublicKey) {
+    t.Errorf("Expected to be a valid signature, got invalid")
+  }
+
+  err = signature.New(EntityComment{}).Sign(priv, &sig)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
+  }
+
+  if !signature.New(EntityComment{AuthorSignature: sig}).Verify(
+      "author created_at guid parent_guid text", &priv.PublicKey) {
+    t.Errorf("Expected to be a valid signature, got invalid")
   }
 }

@@ -32,7 +32,15 @@ type EntityLike struct {
   SignatureOrder string `xml:"-"`
 }
 
-func (e EntityLike) SignatureText() []string {
+func (e EntityLike) Signature() string {
+  return e.AuthorSignature
+}
+
+func (e EntityLike) SignatureText(order string) []string {
+  if order != "" {
+    return ExractSignatureText(order, e)
+  }
+
   positive := "false"
   if e.Positive {
     positive = "true"

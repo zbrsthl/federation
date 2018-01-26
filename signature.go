@@ -26,21 +26,22 @@ import (
   "strings"
 )
 
-type signature interface {
-  SignatureText() []string
+type SignatureInterface interface {
+  Signature() string
+  SignatureText(string) []string
 }
 
 type Signature struct {
+  entity SignatureInterface
   delim string
-  signatureText []string
 
   Err error
 }
 
-func (signature *Signature) New(sig signature) *Signature {
-  signature.signatureText = sig.SignatureText()
+func (signature *Signature) New(entity SignatureInterface) *Signature {
+  signature.entity = entity
   signature.delim = SignatureAuthorDelimiter
-  if _, ok := sig.(Message); ok {
+  if _, ok := entity.(Message); ok {
     signature.delim = SignatureDelimiter
   }
   return signature
@@ -48,7 +49,8 @@ func (signature *Signature) New(sig signature) *Signature {
 
 func (signature *Signature) Sign(privKey *rsa.PrivateKey, sig *string) error {
   h := sha256.New()
-  h.Write([]byte(strings.Join(signature.signatureText, signature.delim)))
+  h.Write([]byte(strings.Join(
+    signature.entity.SignatureText(""), signature.delim)))
   digest := h.Sum(nil)
 
   rng := rand.Reader
@@ -61,9 +63,20 @@ func (signature *Signature) Sign(privKey *rsa.PrivateKey, sig *string) error {
   return nil
 }
 
-func (signature *Signature) Verify(pubKey *rsa.PublicKey, sig []byte) bool {
-  message := []byte(strings.Join(signature.signatureText, signature.delim))
-  err := rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, message[:], sig)
+func (signature *Signature) Verify(order string, pubKey *rsa.PublicKey) bool {
+  sig, err := base64.StdEncoding.DecodeString(signature.entity.Signature())
+  if err != nil {
+    sig, err = base64.URLEncoding.DecodeString(signature.entity.Signature())
+    if err != nil {
+      signature.Err = err
+      return false
+    }
+  }
+  orderArr := signature.entity.SignatureText(order)
+  message := []byte(strings.Join(orderArr, signature.delim))
+  hashed := sha256.Sum256(message)
+
+  err = rsa.VerifyPKCS1v15(pubKey, crypto.SHA256, hashed[:], sig)
   signature.Err = err
   return err == nil
 }
