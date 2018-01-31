@@ -26,7 +26,7 @@ type EntityStatusMessage struct {
   CreatedAt Time `xml:"created_at"`
   ProviderName string `xml:"provider_display_name"`
   Text string `xml:"text,omitempty"`
-  Photo *EntityPhotos `xml:"photo,omitempty"`
+  Photos *EntityPhotos `xml:"photo,omitempty"`
   Location *EntityLocation `xml:"location,omitempty"`
   Poll *EntityPoll `xml:"poll,omitempty"`
   Public bool `xml:"public"`
@@ -41,21 +41,6 @@ type EntityReshare struct {
   RootAuthor string `xml:"root_author"`
   RootGuid string `xml:"root_guid"`
 }
-
-type EntityPhoto struct {
-  Guid string `xml:"guid"`
-  Author string `xml:"author"`
-  Public bool `xml:"public"`
-  CreatedAt Time `xml:"created_at"`
-  RemotePhotoPath string `xml:"remote_photo_path"`
-  RemotePhotoName string `xml:"remote_photo_name"`
-  Text string `xml:"text"`
-  StatusMessageGuid string `xml:"status_message_guid"`
-  Height int `xml:"height"`
-  Width int `xml:"width"`
-}
-
-type EntityPhotos []EntityPhoto
 
 type EntityLocation struct {
   Address string `xml:"address"`
