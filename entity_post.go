@@ -57,12 +57,6 @@ type EntityPhoto struct {
 
 type EntityPhotos []EntityPhoto
 
-type EntityLocation struct {
-  Address string `xml:"address"`
-  Lat string `xml:"lat"`
-  Lng string `xml:"lng"`
-}
-
 type EntityPoll struct {
   Guid string `xml:"guid"`
   Question string `xml:"question"`
@@ -72,16 +66,4 @@ type EntityPoll struct {
 type EntityPollAnswer struct {
   Guid string `xml:"guid"`
   Answer string `xml:"answer"`
-}
-
-type EntityEvent struct {
-  Author string `xml:"author"`
-  Guid string `xml:"guid"`
-  Summary string `xml:"summary"`
-  Start Time `xml:"start"`
-  End Time `xml:"end"`
-  AllDay bool `xml:"all_day"`
-  Timezone string `xml:"timezone"`
-  Description string `xml:"description"`
-  Location *EntityLocation `xml:"location,omitempty"`
 }

@@ -17,28 +17,8 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-const (
-  TIME_FORMAT = "2006-01-02T15:04:05Z0700"
-  XMLNS = "https://joindiaspora.com/protocol"
-  XMLNS_ME = "http://salmon-protocol.org/ns/magic-env"
-  APPLICATION_XML = "application/xml"
-  BASE64_URL = "base64url"
-  RSA_SHA256 = "RSA-SHA256"
-
-  // entity names
-  Retraction = "retraction"
-  Profile = "profile"
-  StatusMessage = "status_message"
-  Reshare = "reshare"
-  Comment = "comment"
-  Like = "like"
-  Contact = "contact"
-
-  // webfinger
-  WebFingerOstatus = "http://ostatus.org/schema/1.0/subscribe"
-  WebFingerHcard = "http://microformats.org/profile/hcard"
-
-  // signatures
-  SignatureDelimiter = "."
-  SignatureAuthorDelimiter = ";"
-)
+type EntityLocation struct {
+  Address string `xml:"address"`
+  Lat string `xml:"lat"`
+  Lng string `xml:"lng"`
+}
