@@ -32,6 +32,7 @@ const (
   PROTO_HTTPS = "https://"
   CONTENT_TYPE_ENVELOPE = "application/magic-envelope+xml"
   CONTENT_TYPE_JSON = "application/json"
+  USER_AGENT = "GangGo/v0 (Federation library)"
 )
 
 var timeout = time.Duration(10 * time.Second)
@@ -49,7 +50,8 @@ func push(host, endpoint, proto, contentType string, body io.Reader) error {
   if err != nil {
     return err
   }
-  req.Header.Add("Content-Type", contentType)
+  req.Header.Set("User-Agent", USER_AGENT)
+  req.Header.Set("Content-Type", contentType)
 
   client := &http.Client{Timeout: timeout}
   resp, err := client.Do(req)
@@ -69,63 +71,26 @@ func push(host, endpoint, proto, contentType string, body io.Reader) error {
 }
 
 func FetchJson(method, url string, body io.Reader, result interface{}) error {
-  var proto string
-  if !strings.HasPrefix(url, "http") {
-    proto = "https://"
-  }
-  req, err := http.NewRequest(method, proto + url, body)
+  resp, err := fetch(method, url, "application/json", body)
   if err != nil {
     return err
   }
-  req.Header.Set("Content-Type", "application/json")
-
-  client := &http.Client{
-    Timeout: timeout,
-  }
-  resp, err := client.Do(req)
-  if err != nil {
-    if !strings.HasPrefix(url, "http") {
-      return FetchJson(method, "http://" + url, body, result)
-    }
-    return err
-  }
-
-  err = json.NewDecoder(resp.Body).Decode(result)
-  if err != nil {
-    return err
-  }
-  return nil
+  return json.NewDecoder(resp.Body).Decode(result)
 }
 
 func FetchXml(method, url string, body io.Reader, result interface{}) error {
-  var proto string
-  if !strings.HasPrefix(url, "http") {
-    proto = "https://"
-  }
-  req, err := http.NewRequest(method, proto + url, body)
+  resp, err := fetch(method, url, "application/xrd+xml", body)
   if err != nil {
     return err
   }
-  req.Header.Set("Content-Type", "application/xrd+xml")
-
-  client := &http.Client{
-    Timeout: timeout,
-  }
-  resp, err := client.Do(req)
-  if err != nil {
-    if !strings.HasPrefix(url, "http") {
-      return FetchXml(method, "http://" + url, body, result)
-    }
-    return err
-  }
-  err = xml.NewDecoder(resp.Body).Decode(result)
-  if err != nil {
-    return err
-  }
-  return nil
+  return xml.NewDecoder(resp.Body).Decode(result)
 }
 
 func FetchHtml(method, url string, body io.Reader) (resp *http.Response, err error) {
+  return fetch(method, url, "text/html", body)
+}
+
+func fetch(method, url, contentType string, body io.Reader) (*http.Response, error) {
   var proto string
   if !strings.HasPrefix(url, "http") {
     proto = "https://"
@@ -134,17 +99,16 @@ func FetchHtml(method, url string, body io.Reader) (resp *http.Response, err err
   if err != nil {
     return nil, err
   }
-  req.Header.Set("Content-Type", "application/xrd+xml")
+  req.Header.Set("User-Agent", USER_AGENT)
+  req.Header.Set("Content-Type", contentType)
 
-  client := &http.Client{
-    Timeout: timeout,
-  }
-  resp, err = client.Do(req)
+  client := &http.Client{Timeout: timeout}
+  resp, err := client.Do(req)
   if err != nil {
     if !strings.HasPrefix(url, "http") {
-      return FetchHtml(method, "http://" + url, body)
+      return fetch(method, "http://" + url, contentType, body)
     }
     return nil, err
   }
-  return
+  return resp, nil
 }
