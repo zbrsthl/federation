@@ -22,6 +22,7 @@ import (
   "github.com/Zauberstuhl/go-xml"
   "encoding/base64"
   "time"
+  "strings"
 )
 
 type Message struct {
@@ -63,6 +64,49 @@ func (m Message) SignatureText(order string) []string {
     base64.StdEncoding.EncodeToString([]byte(m.Encoding)),
     base64.StdEncoding.EncodeToString([]byte(m.Alg)),
   }
+}
+
+func (message *Message) Parse() (entity Entity, err error) {
+  if !strings.EqualFold(message.Encoding, BASE64_URL) {
+    logger.Error("Encoding doesn't match",
+      "message", message.Encoding, "lib", BASE64_URL)
+    return entity, errors.New("Encoding doesn't match")
+  }
+
+  if !strings.EqualFold(message.Alg, RSA_SHA256) {
+    logger.Error("Algorithm doesn't match",
+      "message", message.Alg, "lib", RSA_SHA256)
+    return entity, errors.New("Algorithm doesn't match")
+  }
+
+  keyId, err := base64.StdEncoding.DecodeString(message.Sig.KeyId)
+  if err != nil {
+    logger.Error("Cannot decode signature key ID", "err", err)
+    return entity, err
+  }
+  message.Sig.KeyId = string(keyId)
+  logger.Info("Entity sender", message.Sig.KeyId)
+
+  data, err := base64.URLEncoding.DecodeString(message.Data.Data)
+  if err != nil {
+    logger.Error("Cannot decode message data", "err", err)
+    return entity, err
+  }
+  logger.Info("Entity raw", string(data))
+
+  entity.SignatureOrder, err = FetchEntityOrder(data)
+  if err != nil {
+    logger.Error("Cannot fetch entity order", "err", err)
+    return entity, err
+  }
+  logger.Info("Entity order", entity.SignatureOrder)
+
+  err = xml.Unmarshal(data, &entity)
+  if err != nil {
+    logger.Error("Cannot unmarshal data", "err", err)
+    return entity, err
+  }
+  return entity, nil
 }
 
 func (t *Time) New(newTime time.Time) *Time {
