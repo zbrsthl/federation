@@ -17,23 +17,37 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "testing"
+import (
+  "testing"
+  "fmt"
+)
 
 func TestParseDecryptedRequest(t *testing.T) {
-  var xml = []byte(`<?xml version="1.0" encoding="UTF-8"?><me:env xmlns:me="http://salmon-protocol.org/ns/magic-env"><me:data type="application/xml">PHN0YXR1c19tZXNzYWdlPgogIDxhdXRob3I-ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAxPC9hdXRob3I-CiAgPGd1aWQ-ZmUyZDJhODA1MzQ4MDEzNWQwOGY1Mjk2ZjJlNzQ0N2I8L2d1aWQ-CiAgPGNyZWF0ZWRfYXQ-MjAxNy0wNy0yNVQwOToyNDozM1o8L2NyZWF0ZWRfYXQ-CiAgPHByb3ZpZGVyX2Rpc3BsYXlfbmFtZS8-CiAgPHRleHQ-cGluZzwvdGV4dD4KICA8cHVibGljPmZhbHNlPC9wdWJsaWM-Cjwvc3RhdHVzX21lc3NhZ2U-</me:data><me:encoding>base64url</me:encoding><me:alg>RSA-SHA256</me:alg><me:sig key_id="ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx">NbuD4kERZzXPFRORH4NOcr7EAij-dWKTCG0eBBGZObN3Aic0lMAZ_rLU7o6PLOH9Q6p6dyneYjUjSu07vtI5Jy_N2XQpKUni3fUWxfDNgfMo26XKmxdJ5S2Gp1ux1ToO3FY9RByTZw5HZRpOBAfRSgttTgiY5_Yu5D-BLcEm_94R6FMWRniQXrMAt8hU9qCNSuVQlUKtuuy8qJXu6Z21VhI9lAT7wIALlR9UwIgz0e6UG9S9sU95f_38co0ibD1KbQpBd8c_lu5vCVIqlEe_Fa_xYZupMLaU8De-wzoBpBgqR65mRtUQTu2jP-Qxa3aXrANHxweIbnYfpZ5QcNA50hfyVJJSolczDSlDljTunEmHmWNaS3J7waEQsIDFATPFy6H5leRPpSzebXYca4T-EiapPP-mn41Vs3VKIdUXOHus_HcTPWRVT-Vr-yt7byFYEanb5b5lQ_IHcI0oyqX7RrVJid6UsBtwxwkX0FSc1cZgLhBQUgxBsUh5MNte-WZJv_6c9rHyNsH3rn9YEZp431P9GCe8gNdLY9bFQ1pYS9BxOAS2enu3yVpWpWRechiR7D__HC4-Hw2MHfSSmBQTxq5oO01_efEHB8XxWF85XYNT6_icXf3ZsTxkURT9HlHapkFwL7TlO5gPUZZVJt9f6kn9HoGQ56MX2n46KdKKid8=</me:sig></me:env>`)
+  var msgData = `PHN0YXR1c19tZXNzYWdlPgogIDxhdXRob3I-ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAxPC9hdXRob3I-CiAgPGd1aWQ-ZmUyZDJhODA1MzQ4MDEzNWQwOGY1Mjk2ZjJlNzQ0N2I8L2d1aWQ-CiAgPGNyZWF0ZWRfYXQ-MjAxNy0wNy0yNVQwOToyNDozM1o8L2NyZWF0ZWRfYXQ-CiAgPHByb3ZpZGVyX2Rpc3BsYXlfbmFtZS8-CiAgPHRleHQ-cGluZzwvdGV4dD4KICA8cHVibGljPmZhbHNlPC9wdWJsaWM-Cjwvc3RhdHVzX21lc3NhZ2U-`
+  var tmpl = `<?xml version="1.0" encoding="UTF-8"?><me:env xmlns:me="http://salmon-protocol.org/ns/magic-env"><me:data type="application/xml">%s</me:data><me:encoding>%s</me:encoding><me:alg>%s</me:alg><me:sig key_id="%s">NbuD4kERZzXPFRORH4NOcr7EAij-dWKTCG0eBBGZObN3Aic0lMAZ_rLU7o6PLOH9Q6p6dyneYjUjSu07vtI5Jy_N2XQpKUni3fUWxfDNgfMo26XKmxdJ5S2Gp1ux1ToO3FY9RByTZw5HZRpOBAfRSgttTgiY5_Yu5D-BLcEm_94R6FMWRniQXrMAt8hU9qCNSuVQlUKtuuy8qJXu6Z21VhI9lAT7wIALlR9UwIgz0e6UG9S9sU95f_38co0ibD1KbQpBd8c_lu5vCVIqlEe_Fa_xYZupMLaU8De-wzoBpBgqR65mRtUQTu2jP-Qxa3aXrANHxweIbnYfpZ5QcNA50hfyVJJSolczDSlDljTunEmHmWNaS3J7waEQsIDFATPFy6H5leRPpSzebXYca4T-EiapPP-mn41Vs3VKIdUXOHus_HcTPWRVT-Vr-yt7byFYEanb5b5lQ_IHcI0oyqX7RrVJid6UsBtwxwkX0FSc1cZgLhBQUgxBsUh5MNte-WZJv_6c9rHyNsH3rn9YEZp431P9GCe8gNdLY9bFQ1pYS9BxOAS2enu3yVpWpWRechiR7D__HC4-Hw2MHfSSmBQTxq5oO01_efEHB8XxWF85XYNT6_icXf3ZsTxkURT9HlHapkFwL7TlO5gPUZZVJt9f6kn9HoGQ56MX2n46KdKKid8=</me:sig></me:env>`
+  tests := [][]string{
+    []string{msgData, "base32url", "RSA-SHA256", "ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx"},
+    []string{msgData, "base64url", "RSA-SHA128", "ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx"},
+    []string{msgData, "base64url", "RSA-SHA256", "not valid at all"},
+    []string{"not valid", "base64url", "RSA-SHA256", "ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx"},
+  }
 
-  _, entity, err := ParseDecryptedRequest([]byte(""))
+  for i, test := range tests {
+    _, entity, err := ParseDecryptedRequest([]byte(fmt.Sprintf(
+      tmpl, test[0], test[1], test[2], test[3],
+    ))); if err == nil {
+      t.Errorf("#%d: Expected to be an error, got %+v, with %+v", i, entity, test)
+    }
+  }
+
+  _, _, err := ParseDecryptedRequest([]byte("<broken></broken"))
   if err == nil {
     t.Errorf("Expected to be an error, got nil")
   }
 
-  _, entity, err = ParseDecryptedRequest([]byte("<broken></broken"))
-  if err == nil {
-    t.Errorf("Expected to be an error, got nil")
-  }
-
-  message, entity, err := ParseDecryptedRequest(xml)
-  if err != nil {
+  message, entity, err := ParseDecryptedRequest([]byte(fmt.Sprintf(
+    tmpl, msgData, "base64url", "RSA-SHA256", "ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx",
+  ))); if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
