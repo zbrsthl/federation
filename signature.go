@@ -59,14 +59,14 @@ func (signature *Signature) Sign(privKey *rsa.PrivateKey, sig *string) error {
     signature.Err = err
     return err
   }
-  *sig = base64.StdEncoding.EncodeToString(bytes)
+  *sig = base64.URLEncoding.EncodeToString(bytes)
   return nil
 }
 
 func (signature *Signature) Verify(order string, pubKey *rsa.PublicKey) bool {
-  sig, err := base64.StdEncoding.DecodeString(signature.entity.Signature())
+  sig, err := base64.URLEncoding.DecodeString(signature.entity.Signature())
   if err != nil {
-    sig, err = base64.URLEncoding.DecodeString(signature.entity.Signature())
+    sig, err = base64.StdEncoding.DecodeString(signature.entity.Signature())
     if err != nil {
       signature.Err = err
       return false
