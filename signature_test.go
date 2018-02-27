@@ -19,6 +19,7 @@ package federation
 
 import (
   "testing"
+  "encoding/base64"
 )
 
 func TestSignatureInterface(t *testing.T) {
@@ -45,6 +46,17 @@ func TestSignatureInterface(t *testing.T) {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
+  if !signature.New(EntityComment{AuthorSignature: sig}).Verify(
+      "author created_at guid parent_guid text", &priv.PublicKey) {
+    t.Errorf("Expected to be a valid signature, got invalid")
+  }
+
+  sigBytes, err := base64.URLEncoding.DecodeString(sig)
+  if err != nil {
+    t.Errorf("Some error occured while parsing: %v", err)
+  }
+
+  sig = base64.StdEncoding.EncodeToString(sigBytes)
   if !signature.New(EntityComment{AuthorSignature: sig}).Verify(
       "author created_at guid parent_guid text", &priv.PublicKey) {
     t.Errorf("Expected to be a valid signature, got invalid")

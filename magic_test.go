@@ -29,7 +29,7 @@ var TEST_MAGIC_PAYLOAD = []byte(`<me:env xmlns:me="http://salmon-protocol.org/ns
   <me:data type="application/xml">PHg-PC94Pg==</me:data>
   <me:encoding>base64url</me:encoding>
   <me:alg>RSA-SHA256</me:alg>
-  <me:sig key_id="ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx">PIlS0XhUHGqSsoGKP2efeitDKv7uO0ekNoDQPm5lk844muzMPk7iK9t6T3ageqIsl14xmnInDGKlbrM49JiuYB4aFKEwqHAIEj2axCjdm6HRF5mv+2nhVjKISx+AcuKY1Rav9pKQoQqphRm8p9CQr632TK5mkFfBAeGpyJE8I3WNwguy9AozR+ym0b3MrbDhHxpzGxcRAvjyzbRMfvLhOlVKauaIEGDVN6nbBXVSY4hSBYu38+02PyGuyPjjlBJHNIPQXUL9dcSq/LXs/ElwQA2JBLwF6+opQvIBDbjUVkX4spKo/uRNEAlFuR4Ul+bi/Y7+ssoD3DrMHN4Fg2hx5w==</me:sig>
+  <me:sig key_id="ZGlhc3BvcmFfMm5kQGxvY2FsaG9zdDozMDAx">PIlS0XhUHGqSsoGKP2efeitDKv7uO0ekNoDQPm5lk844muzMPk7iK9t6T3ageqIsl14xmnInDGKlbrM49JiuYB4aFKEwqHAIEj2axCjdm6HRF5mv-2nhVjKISx-AcuKY1Rav9pKQoQqphRm8p9CQr632TK5mkFfBAeGpyJE8I3WNwguy9AozR-ym0b3MrbDhHxpzGxcRAvjyzbRMfvLhOlVKauaIEGDVN6nbBXVSY4hSBYu38-02PyGuyPjjlBJHNIPQXUL9dcSq_LXs_ElwQA2JBLwF6-opQvIBDbjUVkX4spKo_uRNEAlFuR4Ul-bi_Y7-ssoD3DrMHN4Fg2hx5w==</me:sig>
 </me:env>`)
 
 func TestMagicEnvelope(t *testing.T) {
