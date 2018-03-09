@@ -1,4 +1,4 @@
-package federation
+package activitypub
 //
 // GangGo Diaspora Federation Library
 // Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
@@ -16,6 +16,8 @@ package federation
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+import helpers "github.com/ganggo/federation/helpers"
 
 type ActivityCollection struct {
   *ActivityContext
@@ -36,7 +38,7 @@ type ActivityCollectionPage struct {
 type ActivityCreate struct {
   *ActivityBase
   Actor string `json:"actor"`
-  Published Time `json:"published"`
+  Published helpers.Time `json:"published"`
   To []string `json:"to"`
   Cc []string `json:"cc"`
   Object ActivityNote `json:"object"`
@@ -47,7 +49,7 @@ type ActivityNote struct {
   Summary string `json:"summary"`
   Content string `json:"content"`
   InReplyTo string `json:"inReplyTo"`
-  Published Time `json:"published"`
+  Published helpers.Time `json:"published"`
   Url string `json:"url"`
   To []string `json:"to"`
   Cc []string `json:"cc"`

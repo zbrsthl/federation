@@ -1,4 +1,4 @@
-package federation
+package activitypub
 //
 // GangGo Diaspora Federation Library
 // Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
@@ -17,4 +17,20 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-const ACTIVITY_STREAMS = "https://www.w3.org/ns/activitystreams"
+import "errors"
+
+const (
+  ACTIVITY_STREAMS = "https://www.w3.org/ns/activitystreams"
+
+  ActivityTypeCreate = "Create"
+  ActivityTypeNote = "Note"
+  ActivityTypePerson = "Person"
+  ActivityTypeCollection = "Collection"
+  ActivityTypeOrderedCollection = "OrderedCollection"
+  ActivityTypeCollectionPage = "CollectionPage"
+  ActivityTypeOrderedCollectionPage = "OrderedCollectionPage"
+)
+
+var (
+  ERROR_MISSING_TYPE = errors.New("missing type in request")
+)

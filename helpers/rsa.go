@@ -1,0 +1,48 @@
+package helpers
+//
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+
+import (
+  "crypto/rsa"
+  "crypto/x509"
+  "encoding/pem"
+  "errors"
+)
+
+func ParseRSAPublicKey(decodedKey []byte) (*rsa.PublicKey, error) {
+  block, _ := pem.Decode(decodedKey)
+  if block == nil {
+    return nil, errors.New("Decode public key block is nil")
+  }
+  data, err := x509.ParsePKIXPublicKey(block.Bytes)
+  if err != nil {
+    return nil, err
+  }
+  if pubKey, ok := data.(*rsa.PublicKey); ok {
+    return pubKey, nil
+  }
+  return nil, errors.New("Wasn't able to parse the public key!")
+}
+
+func ParseRSAPrivateKey(decodedKey []byte) (*rsa.PrivateKey, error) {
+  block, _ := pem.Decode(decodedKey)
+  if block == nil {
+    return nil, errors.New("Decode private key block is nil!")
+  }
+  return x509.ParsePKCS1PrivateKey(block.Bytes)
+}

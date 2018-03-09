@@ -18,13 +18,6 @@ package federation
 //
 
 const (
-  TIME_FORMAT = "2006-01-02T15:04:05Z"
-  XMLNS = "https://joindiaspora.com/protocol"
-  XMLNS_ME = "http://salmon-protocol.org/ns/magic-env"
-  APPLICATION_XML = "application/xml"
-  BASE64_URL = "base64url"
-  RSA_SHA256 = "RSA-SHA256"
-
   // entity names
   Retraction = "retraction"
   Profile = "profile"
@@ -41,4 +34,5 @@ const (
   // signatures
   SignatureDelimiter = "."
   SignatureAuthorDelimiter = ";"
+  SignatureHTTPDelimiter = "\n"
 )

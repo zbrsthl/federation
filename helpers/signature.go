@@ -1,7 +1,7 @@
-package federation
+package helpers
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,11 +18,6 @@ package federation
 //
 
 import (
-  "regexp"
-  "crypto/rsa"
-  "crypto/x509"
-  "encoding/pem"
-  "errors"
   "reflect"
   "strings"
 )
@@ -60,48 +55,6 @@ func ExractSignatureText(order string, entity interface{}) (signatureOrder []str
         signatureOrder = append(signatureOrder, valueBool)
       }
     }
-  }
-  return
-}
-
-func ParseRSAPublicKey(decodedKey []byte) (*rsa.PublicKey, error) {
-  block, _ := pem.Decode(decodedKey)
-  if block == nil {
-    return nil, errors.New("Decode public key block is nil")
-  }
-  data, err := x509.ParsePKIXPublicKey(block.Bytes)
-  if err != nil {
-    return nil, err
-  }
-  if pubKey, ok := data.(*rsa.PublicKey); ok {
-    return pubKey, nil
-  }
-  return nil, errors.New("Wasn't able to parse the public key!")
-}
-
-func ParseRSAPrivateKey(decodedKey []byte) (*rsa.PrivateKey, error) {
-  block, _ := pem.Decode(decodedKey)
-  if block == nil {
-    return nil, errors.New("Decode private key block is nil!")
-  }
-  return x509.ParsePKCS1PrivateKey(block.Bytes)
-}
-
-func ParseWebfingerHandle(handle string) (string, error) {
-  parts, err := parseStringHelper(handle, `^acct:(.+?)@.+?$`, 1)
-  if err != nil {
-    return "", err
-  }
-  return parts[1], nil
-}
-
-func parseStringHelper(line, regex string, max int) (parts []string, err error) {
-  r := regexp.MustCompile(regex)
-  parts = r.FindStringSubmatch(line)
-
-  if (len(parts) - 1) < max {
-    err = errors.New("Cannot extract " + regex + " from " + line)
-    return
   }
   return
 }

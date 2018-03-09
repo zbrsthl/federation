@@ -1,7 +1,7 @@
-package federation
+package helpers
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,12 +17,26 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "github.com/Zauberstuhl/go-xml"
+import (
+  "regexp"
+  "errors"
+)
 
-type EntityContact struct {
-  XMLName xml.Name `xml:"contact"`
-  Author string `xml:"author"`
-  Recipient string `xml:"recipient"`
-  Following bool `xml:"following"`
-  Sharing bool `xml:"sharing"`
+func ParseWebfingerHandle(handle string) (string, error) {
+  parts, err := parseStringHelper(handle, `^acct:(.+?)@.+?$`, 1)
+  if err != nil {
+    return "", err
+  }
+  return parts[1], nil
+}
+
+func parseStringHelper(line, regex string, max int) (parts []string, err error) {
+  r := regexp.MustCompile(regex)
+  parts = r.FindStringSubmatch(line)
+
+  if (len(parts) - 1) < max {
+    err = errors.New("Cannot extract " + regex + " from " + line)
+    return
+  }
+  return
 }

@@ -1,7 +1,7 @@
-package activitypub
+package helpers
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,20 +17,21 @@ package activitypub
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-type ActivityActor struct {
-  *ActivityContext
-  Inbox string `json:"inbox"`
-  Outbox string `json:"outbox"`
-  Following string `json:"following"`
-  Followers string `json:"followers"`
+import "time"
 
-  PreferredUsername *string `json:"preferredUsername,omitempty"`
-  Name *string `json:"name,omitempty"`
-  Summary *string `json:"summary,omitempty"`
-  PublicKey *struct {
-    PublicKeyPem string `json:"publicKeyPem"`
-  } `json:"publicKey,omitempty"`
-  Icon *struct {
-    Url string `json:"url"`
-  } `json:"icon,omitempty"`
+const TIME_FORMAT = "2006-01-02T15:04:05Z"
+
+type Time string
+
+func (t *Time) New(newTime time.Time) *Time {
+  *t = Time(newTime.UTC().Format(TIME_FORMAT))
+  return t
+}
+
+func (t Time) Time() (time.Time, error) {
+  return time.Parse(TIME_FORMAT, string(t))
+}
+
+func (t Time) String() string {
+  return string(t)
 }

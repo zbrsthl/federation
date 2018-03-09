@@ -32,7 +32,7 @@ const (
 )
 
 var (
-  logger Logger
+  Log Logger
   defaultPrefix string
 )
 
@@ -43,7 +43,7 @@ func init() {
   file, line := f.FileLine(pc[0])
 
   defaultPrefix = fmt.Sprintf("%s:%d %s ", file, line, f.Name())
-  logger = Logger{
+  Log = Logger{
     log.New(os.Stdout, defaultPrefix, log.Lshortfile),
     LOG_C_TUR,
   }
@@ -60,7 +60,7 @@ type Logger struct{
 }
 
 func SetLogger(writer LogWriter) {
-  logger = Logger{writer, LOG_C_TUR}
+  Log = Logger{writer, LOG_C_TUR}
 }
 
 func (l Logger) Info(values... interface{}) {

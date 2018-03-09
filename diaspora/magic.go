@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,10 +23,11 @@ import (
   "encoding/json"
   "crypto/rsa"
   "crypto/rand"
+  federation "github.com/ganggo/federation"
 )
 
 func MagicEnvelope(privKey *rsa.PrivateKey, handle string, plainXml []byte) (payload []byte, err error) {
-  logger.Info("MagicEnvelope with", string(plainXml), "for", handle)
+  federation.Log.Info("MagicEnvelope with", string(plainXml), "for", handle)
 
   data := base64.URLEncoding.EncodeToString(plainXml)
   keyId := base64.URLEncoding.EncodeToString([]byte(handle))
@@ -39,26 +40,26 @@ func MagicEnvelope(privKey *rsa.PrivateKey, handle string, plainXml []byte) (pay
   xmlBody.Alg = RSA_SHA256
   xmlBody.Sig.KeyId = keyId
 
-  var signature Signature
+  var signature federation.Signature
   err = signature.New(xmlBody).Sign(privKey,
     &(xmlBody.Sig.Sig))
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
   payload, err = xml.MarshalIndent(xmlBody, "", "  ")
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
-  logger.Info("MagicEnvelope payload", string(payload))
+  federation.Log.Info("MagicEnvelope payload", string(payload))
   return
 }
 
 func EncryptedMagicEnvelope(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, handle string, serializedXml []byte) (payload []byte, err error) {
-  logger.Info("EncryptedMagicEnvelope with", string(serializedXml), "for", handle)
+  federation.Log.Info("EncryptedMagicEnvelope with", string(serializedXml), "for", handle)
 
   var aesKeySet Aes
   var aesWrapper AesWrapper
@@ -74,36 +75,36 @@ func EncryptedMagicEnvelope(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, hand
   envelope.Data.Data = data
   envelope.Sig.KeyId = keyId
 
-  var signature Signature
+  var signature federation.Signature
   err = signature.New(envelope).Sign(privKey,
     &(envelope.Sig.Sig))
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
   // Generate a new AES key pair
   err = aesKeySet.Generate()
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
   // payload with aes encryption
   payload, err = xml.MarshalIndent(envelope, "", "  ")
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
-  logger.Info(
+  federation.Log.Info(
     "EncryptedMagicEnvelope payload with aes encryption",
     string(payload),
   )
 
   err = aesKeySet.Encrypt(payload)
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
   aesWrapper.MagicEnvelope = aesKeySet.Data
@@ -111,25 +112,25 @@ func EncryptedMagicEnvelope(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, hand
   // aes with rsa encryption
   aesKeySetXml, err := json.MarshalIndent(aesKeySet, "", "  ")
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
-  logger.Info("AES key-set XML", string(aesKeySetXml))
+  federation.Log.Info("AES key-set XML", string(aesKeySetXml))
 
   aesKey, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey, aesKeySetXml)
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
   aesWrapper.AesKey = base64.StdEncoding.EncodeToString(aesKey)
 
   payload, err = json.MarshalIndent(aesWrapper, "", "  ")
   if err != nil {
-    logger.Warn(err)
+    federation.Log.Warn(err)
     return
   }
 
-  logger.Info("EncryptedMagicEnvelope payload", string(payload))
+  federation.Log.Info("EncryptedMagicEnvelope payload", string(payload))
   return
 }

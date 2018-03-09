@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,7 +17,11 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "github.com/Zauberstuhl/go-xml"
+import (
+  "github.com/Zauberstuhl/go-xml"
+  federation "github.com/ganggo/federation"
+  helpers "github.com/ganggo/federation/helpers"
+)
 
 type EntityLike struct {
   XMLName xml.Name `xml:"like"`
@@ -38,7 +42,7 @@ func (e EntityLike) Signature() string {
 
 func (e EntityLike) SignatureText(order string) []string {
   if order != "" {
-    return ExractSignatureText(order, e)
+    return helpers.ExractSignatureText(order, e)
   }
 
   positive := "false"
@@ -53,3 +57,5 @@ func (e EntityLike) SignatureText(order string) []string {
     e.Author,
   }
 }
+
+func (e EntityLike) Type() string { return federation.Like }

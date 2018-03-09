@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,12 +20,13 @@ package federation
 import (
   "crypto/rsa"
   "github.com/Zauberstuhl/go-xml"
+  federation "github.com/ganggo/federation"
 )
 
 func ParseDecryptedRequest(entityXML []byte) (message Message, entity Entity, err error) {
   err = xml.Unmarshal(entityXML, &message)
   if err != nil {
-    logger.Error(err)
+    federation.Log.Error(err)
     return
   }
   entity, err = message.Parse()
@@ -35,7 +36,7 @@ func ParseDecryptedRequest(entityXML []byte) (message Message, entity Entity, er
 func ParseEncryptedRequest(wrapper AesWrapper, privKey *rsa.PrivateKey) (message Message, entity Entity, err error) {
   entityXML, err := wrapper.Decrypt(privKey)
   if err != nil {
-    logger.Error(err)
+    federation.Log.Error(err)
     return
   }
 

@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,37 +17,45 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "testing"
+import (
+  "testing"
+  "time"
+)
 
-var like = EntityLike{
-  Positive: true,
+var comment = EntityComment{
+  Author: "author@localhost",
   Guid: "1234",
   ParentGuid: "4321",
-  ParentType: "Post",
-  Author: "author@localhost",
+  AuthorSignature: "1234",
+  Text: "hello world",
 }
 
-func TestLikeSignature(t *testing.T) {
-  like.AuthorSignature = "1234"
-  if like.Signature() != like.AuthorSignature {
+func TestCommentSignature(t *testing.T) {
+  if comment.Signature() != comment.AuthorSignature {
     t.Errorf("Expected to be '%s', got '%s'",
-      like.AuthorSignature, like.Signature())
+      comment.AuthorSignature, comment.Signature())
   }
 }
 
-func TestLikeAppendSignature(t *testing.T) {
+func TestCommentAppendSignature(t *testing.T) {
+  comment.CreatedAt.New(time.Now())
+
+  if comment.AuthorSignature != "1234" {
+    t.Errorf("Expected to be empty, got %s", comment.AuthorSignature)
+  }
+
   privKey, err := ParseRSAPrivateKey(TEST_PRIV_KEY)
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
   var signature Signature
-  err = signature.New(like).Sign(privKey, &(like.AuthorSignature))
+  err = signature.New(comment).Sign(privKey, &(comment.AuthorSignature))
   if err != nil {
     t.Errorf("Some error occured while parsing: %v", err)
   }
 
-  if like.AuthorSignature == "" {
+  if comment.AuthorSignature == "" {
     t.Errorf("Expected signature, got empty string")
   }
 }

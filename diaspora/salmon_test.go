@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ func TestParseEncryptedRequest(t *testing.T) {
 }
 
 func parseEntityRequest(t *testing.T, entity Entity) {
-  // {XMLName:{Space: Local:} Type:status_message SignatureOrder:author guid created_at text public Data:{XMLName:{Space: Local:status_message} Author:diaspora_2nd@localhost:3001 Guid:fe2d2a8053480135d08f5296f2e7447b CreatedAt:2017-07-25 09:24:33 +0000 UTC ProviderName: Text:ping Photo:<nil> Location:<nil> Poll:<nil> Public:false Event:<nil>}}
+  // {XMLName:{Space: Local:} Type:status_message SignatureOrder:author guid created_at text public Data:{XMLName:{Space: Local:status_message} Author:diaspora_2nd@localhost:3001 Guid:fe2d2a8053480135d08f5296f2e7447b CreatedAt:2017-2018-07-25 09:24:33 +0000 UTC ProviderName: Text:ping Photo:<nil> Location:<nil> Poll:<nil> Public:false Event:<nil>}}
   if entity.Type != "status_message" {
     t.Errorf("Expected type string 'status_message', got '%s'", entity.Type)
   }

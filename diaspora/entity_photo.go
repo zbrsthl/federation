@@ -1,7 +1,7 @@
-package activitypub
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,20 +17,19 @@ package activitypub
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-type ActivityActor struct {
-  *ActivityContext
-  Inbox string `json:"inbox"`
-  Outbox string `json:"outbox"`
-  Following string `json:"following"`
-  Followers string `json:"followers"`
+import helpers "github.com/ganggo/federation/helpers"
 
-  PreferredUsername *string `json:"preferredUsername,omitempty"`
-  Name *string `json:"name,omitempty"`
-  Summary *string `json:"summary,omitempty"`
-  PublicKey *struct {
-    PublicKeyPem string `json:"publicKeyPem"`
-  } `json:"publicKey,omitempty"`
-  Icon *struct {
-    Url string `json:"url"`
-  } `json:"icon,omitempty"`
+type EntityPhoto struct {
+  Guid string `xml:"guid"`
+  Author string `xml:"author"`
+  Public bool `xml:"public"`
+  CreatedAt helpers.Time `xml:"created_at"`
+  RemotePhotoPath string `xml:"remote_photo_path"`
+  RemotePhotoName string `xml:"remote_photo_name"`
+  Text string `xml:"text"`
+  StatusMessageGuid string `xml:"status_message_guid"`
+  Height int `xml:"height"`
+  Width int `xml:"width"`
 }
+
+type EntityPhotos []EntityPhoto

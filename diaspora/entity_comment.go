@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,12 +17,16 @@ package federation
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "github.com/Zauberstuhl/go-xml"
+import (
+  "github.com/Zauberstuhl/go-xml"
+  federation "github.com/ganggo/federation"
+  helpers "github.com/ganggo/federation/helpers"
+)
 
 type EntityComment struct {
   XMLName xml.Name `xml:"comment"`
   Author string `xml:"author"`
-  CreatedAt Time `xml:"created_at"`
+  CreatedAt helpers.Time `xml:"created_at"`
   Guid string `xml:"guid"`
   ParentGuid string `xml:"parent_guid"`
   Text string `xml:"text"`
@@ -35,7 +39,7 @@ func (e EntityComment) Signature() string {
 
 func (e EntityComment) SignatureText(order string) (signatureOrder []string) {
   if order != "" {
-    return ExractSignatureText(order, e)
+    return helpers.ExractSignatureText(order, e)
   }
   return []string{
     e.Author,
@@ -45,3 +49,5 @@ func (e EntityComment) SignatureText(order string) (signatureOrder []string) {
     e.Text,
   }
 }
+
+func (e EntityComment) Type() string { return federation.Comment }

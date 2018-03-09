@@ -1,7 +1,7 @@
-package federation
+package diaspora
 //
-// GangGo Diaspora Federation Library
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// GangGo Federation Library
+// Copyright (C) 2017-2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@ import (
   "errors"
   "github.com/Zauberstuhl/go-xml"
   "encoding/base64"
-  "time"
   "strings"
+  federation "github.com/ganggo/federation"
 )
 
 type Message struct {
@@ -51,8 +51,6 @@ type Entity struct {
   Data interface{} `xml:"-"`
 }
 
-type Time string
-
 func (m Message) Signature() string {
   return m.Sig.Sig
 }
@@ -66,60 +64,49 @@ func (m Message) SignatureText(order string) []string {
   }
 }
 
+func (m Message) Type() string { return "diaspora" }
+
 func (message *Message) Parse() (entity Entity, err error) {
   if !strings.EqualFold(message.Encoding, BASE64_URL) {
-    logger.Error("Encoding doesn't match",
+    federation.Log.Error("Encoding doesn't match",
       "message", message.Encoding, "lib", BASE64_URL)
     return entity, errors.New("Encoding doesn't match")
   }
 
   if !strings.EqualFold(message.Alg, RSA_SHA256) {
-    logger.Error("Algorithm doesn't match",
+    federation.Log.Error("Algorithm doesn't match",
       "message", message.Alg, "lib", RSA_SHA256)
     return entity, errors.New("Algorithm doesn't match")
   }
 
   keyId, err := base64.StdEncoding.DecodeString(message.Sig.KeyId)
   if err != nil {
-    logger.Error("Cannot decode signature key ID", "err", err)
+    federation.Log.Error("Cannot decode signature key ID", "err", err)
     return entity, err
   }
   message.Sig.KeyId = string(keyId)
-  logger.Info("Entity sender", message.Sig.KeyId)
+  federation.Log.Info("Entity sender", message.Sig.KeyId)
 
   data, err := base64.URLEncoding.DecodeString(message.Data.Data)
   if err != nil {
-    logger.Error("Cannot decode message data", "err", err)
+    federation.Log.Error("Cannot decode message data", "err", err)
     return entity, err
   }
-  logger.Info("Entity raw", string(data))
+  federation.Log.Info("Entity raw", string(data))
 
   entity.SignatureOrder, err = FetchEntityOrder(data)
   if err != nil {
-    logger.Error("Cannot fetch entity order", "err", err)
+    federation.Log.Error("Cannot fetch entity order", "err", err)
     return entity, err
   }
-  logger.Info("Entity order", entity.SignatureOrder)
+  federation.Log.Info("Entity order", entity.SignatureOrder)
 
   err = xml.Unmarshal(data, &entity)
   if err != nil {
-    logger.Error("Cannot unmarshal data", "err", err)
+    federation.Log.Error("Cannot unmarshal data", "err", err)
     return entity, err
   }
   return entity, nil
-}
-
-func (t *Time) New(newTime time.Time) *Time {
-  *t = Time(newTime.UTC().Format(TIME_FORMAT))
-  return t
-}
-
-func (t Time) Time() (time.Time, error) {
-  return time.Parse(TIME_FORMAT, string(t))
-}
-
-func (t Time) String() string {
-  return string(t)
 }
 
 func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -127,49 +114,49 @@ func (e *Entity) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
   // (see https://golang.org/src/encoding/xml/read.go#L377)
   // we have to decode on every single step
   switch local := start.Name.Local; local {
-  case Retraction:
+  case federation.Retraction:
     content := EntityRetraction{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }
     (*e).Type = local
     (*e).Data = content
-  case Profile:
+  case federation.Profile:
     content := EntityProfile{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }
     (*e).Type = local
     (*e).Data = content
-  case StatusMessage:
+  case federation.StatusMessage:
     content := EntityStatusMessage{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }
     (*e).Type = local
     (*e).Data = content
-  case Reshare:
+  case federation.Reshare:
     content := EntityReshare{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }
     (*e).Type = local
     (*e).Data = content
-  case Comment:
+  case federation.Comment:
     content := EntityComment{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }
     (*e).Type = local
     (*e).Data = content
-  case Like:
+  case federation.Like:
     content := EntityLike{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err
     }
     (*e).Type = local
     (*e).Data = content
-  case Contact:
+  case federation.Contact:
     content := EntityContact{}
     if err := d.DecodeElement(&content, &start); err != nil {
       return err

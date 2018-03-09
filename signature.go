@@ -29,6 +29,7 @@ import (
 type SignatureInterface interface {
   Signature() string
   SignatureText(string) []string
+  Type() string
 }
 
 type Signature struct {
@@ -41,8 +42,10 @@ type Signature struct {
 func (signature *Signature) New(entity SignatureInterface) *Signature {
   signature.entity = entity
   signature.delim = SignatureAuthorDelimiter
-  if _, ok := entity.(Message); ok {
+  if entity.Type() == "diaspora" {
     signature.delim = SignatureDelimiter
+  } else if entity.Type() == "activitypub" {
+    signature.delim = SignatureHTTPDelimiter
   }
   return signature
 }
