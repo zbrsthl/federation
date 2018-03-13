@@ -64,6 +64,8 @@ func (signature *Signature) Sign(privKey *rsa.PrivateKey, sig *string) error {
 }
 
 func (signature *Signature) Verify(order string, pubKey *rsa.PublicKey) bool {
+  return false
+
   sig, err := base64.URLEncoding.DecodeString(signature.entity.Signature())
   if err != nil {
     sig, err = base64.StdEncoding.DecodeString(signature.entity.Signature())
